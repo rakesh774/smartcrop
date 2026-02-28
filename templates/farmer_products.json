@@ -1,0 +1,142 @@
+{
+  "farmer_001": [
+    {
+      "product_id": "PROD-20260101120000",
+      "name": "Organic Tomatoes",
+      "price": 45,
+      "quantity": 100,
+      "unit": "kg",
+      "description": "Fresh, pesticide-free tomatoes from premium organic farm",
+      "quality": "Grade A",
+      "created_date": "2026-01-01T12:00:00"
+    },
+    {
+      "product_id": "PROD-20260101120100",
+      "name": "Green Bell Peppers",
+      "price": 80,
+      "quantity": 50,
+      "unit": "kg",
+      "description": "Crisp green bell peppers, perfect for retail",
+      "quality": "Grade A",
+      "created_date": "2026-01-01T12:01:00"
+    },
+    {
+      "product_id": "PROD-20260104125203",
+      "name": "small tomatoes",
+      "price": 40.0,
+      "quantity": 200.0,
+      "unit": "kg",
+      "description": "",
+      "quality": "Grade A",
+      "created_date": "2026-01-04T12:52:03.193958"
+    },
+    {
+      "product_id": "PROD-20260127220450",
+      "name": "allam",
+      "price": 10.0,
+      "quantity": 1000.0,
+      "unit": "kg",
+      "description": "good allam",
+      "quality": "Grade A",
+      "created_date": "2026-01-27T22:04:50.262028"
+    },
+    {
+      "product_id": "PROD-20260120140000",
+      "name": "Premium Kashmir Saffron",
+      "price": 4500,
+      "quantity": 5,
+      "unit": "kg",
+      "description": "Grade A premium Kashmir Saffron - Highest quality, hand-picked",
+      "quality": "Grade A+",
+      "created_date": "2026-01-20T14:00:00"
+    }
+  ],
+  "farmer_002": [
+    {
+      "product_id": "PROD-20260101130000",
+      "name": "Basmati Rice",
+      "price": 120,
+      "quantity": 500,
+      "unit": "kg",
+      "description": "Premium long-grain basmati rice",
+      "quality": "Grade A+",
+      "created_date": "2026-01-01T13:00:00"
+    },
+    {
+      "product_id": "PROD-20260120150000",
+      "name": "Premium Madagascar Vanilla Pods",
+      "price": 1200,
+      "quantity": 10,
+      "unit": "kg",
+      "description": "Premium quality Madagascar vanilla pods - aromatic and flavorful",
+      "quality": "Grade A",
+      "created_date": "2026-01-20T15:00:00"
+    }
+  ],
+  "farmer_003": [
+    {
+      "product_id": "PROD-20260120160000",
+      "name": "Wild Himalayan Ginseng Root",
+      "price": 450,
+      "quantity": 20,
+      "unit": "kg",
+      "description": "Premium wild Himalayan ginseng root - high potency and medicinal value",
+      "quality": "Grade A+",
+      "created_date": "2026-01-20T16:00:00"
+    },
+    {
+      "product_id": "PROD-20260120160100",
+      "name": "Ginseng Extract",
+      "price": 800,
+      "quantity": 15,
+      "unit": "kg",
+      "description": "Concentrated ginseng extract - suitable for supplements and health products",
+      "quality": "Grade A",
+      "created_date": "2026-01-20T16:01:00"
+    }
+  ],
+  "farmer_004": [
+    {
+      "product_id": "PROD-20260120170000",
+      "name": "Fresh Black Truffles - Seasonal",
+      "price": 3500,
+      "quantity": 8,
+      "unit": "kg",
+      "description": "Premium fresh black truffles from Himachal - seasonal availability",
+      "quality": "Grade A+",
+      "created_date": "2026-01-20T17:00:00"
+    },
+    {
+      "product_id": "PROD-20260120170100",
+      "name": "Truffle Oil",
+      "price": 500,
+      "quantity": 25,
+      "unit": "liter",
+      "description": "Infused truffle oil for gourmet cooking and restaurant use",
+      "quality": "Grade A",
+      "created_date": "2026-01-20T17:01:00"
+    }
+  ],
+  "farmer_005": [
+    {
+      "product_id": "PROD-20260120180000",
+      "name": "Premium Green Cardamom",
+      "price": 950,
+      "quantity": 30,
+      "unit": "kg",
+      "description": "Premium green cardamom from Nilgiris - fresh and aromatic",
+      "quality": "Grade A+",
+      "created_date": "2026-01-20T18:00:00"
+    },
+    {
+      "product_id": "PROD-20260120180100",
+      "name": "Cardamom Powder",
+      "price": 400,
+      "quantity": 50,
+      "unit": "kg",
+      "description": "Fine cardamom powder - perfect for baking and spice blending",
+      "quality": "Grade A",
+      "created_date": "2026-01-20T18:01:00"
+    }
+  ]
+}

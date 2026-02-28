@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^cd \"c:\\\\Users\\\\rakes\\\\Documents\\\\programs\\\\dti project\" ; python main\\.py$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

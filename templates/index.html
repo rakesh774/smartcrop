@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agri-Direct | Premium Agricultural Marketplace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+        }
+        .rating { color: #fbbf24; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .analytics-chart {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-green-50 to-blue-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-gradient-to-r from-green-700 to-green-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
+            <h1 class="text-3xl font-bold">🌾 Agri-Direct</h1>
+            <div class="flex gap-4 items-center">
+                <button onclick="showTab('marketplace')" class="px-4 py-2 rounded-lg hover:bg-green-600">Marketplace</button>
+                <button onclick="showTab('subscriptions')" class="px-4 py-2 rounded-lg hover:bg-green-600">📦 Subscriptions</button>
+                <button onclick="showTab('farmer')" class="px-4 py-2 rounded-lg hover:bg-green-600">👨‍🌾 Farmer</button>
+                <button onclick="showTab('analytics')" class="px-4 py-2 rounded-lg hover:bg-green-600">Analytics</button>
+                <!-- User Info (shown when logged in) -->
+                <div id="userInfo" style="display: none;" class="flex gap-2 items-center">
+                    <div class="text-sm">
+                        <p class="font-bold" id="userName"></p>
+                        <p class="text-xs text-green-200" id="userType"></p>
+                    </div>
+                    <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg font-bold">Logout</button>
+                </div>
+                <!-- Login Button (shown when not logged in) -->
+                <button id="loginBtn" onclick="window.location.href='/'" class="bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-lg font-bold">Login</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        
+        <!-- Marketplace Tab -->
+        <div id="marketplace" class="tab-content active">
+            <!-- Hero Section -->
+            <div class="mb-12 bg-gradient-to-r from-green-600 to-blue-600 text-white p-8 rounded-2xl">
+                <h2 class="text-4xl font-bold mb-4">Direct Farm-to-Dealer Platform</h2>
+                <p class="text-lg mb-6">Premium quality crops • Fair prices • AI-powered predictions • Zero middlemen</p>
+                <input type="text" id="searchCrop" placeholder="Search crops..." class="w-full px-4 py-3 rounded-lg text-gray-800 mb-4">
+                <div class="flex gap-3 flex-wrap">
+                    <button onclick="filterCrops('all')" class="bg-white text-green-700 font-bold px-4 py-2 rounded-lg">All Crops</button>
+                    <button onclick="filterCrops('trending')" class="bg-white text-green-700 font-bold px-4 py-2 rounded-lg">📈 Trending</button>
+                    <button onclick="filterCrops('bestseller')" class="bg-white text-green-700 font-bold px-4 py-2 rounded-lg">⭐ Best Sellers</button>
+                    <button onclick="filterCrops('highquality')" class="bg-white text-green-700 font-bold px-4 py-2 rounded-lg">✨ High Quality</button>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
+                <div class="bg-white rounded-lg shadow p-6 text-center">
+                    <div class="text-3xl font-bold text-green-700">5</div>
+                    <p class="text-gray-600">Premium Crops</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6 text-center">
+                    <div class="text-3xl font-bold text-blue-700">₹12,650</div>
+                    <p class="text-gray-600">Avg Price/kg</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6 text-center">
+                    <div class="text-3xl font-bold text-orange-700">10K+</div>
+                    <p class="text-gray-600">Orders Completed</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6 text-center">
+                    <div class="text-3xl font-bold text-red-700">98%</div>
+                    <p class="text-gray-600">Satisfaction Rate</p>
+                </div>
+            </div>
+
+            <!-- Crops Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12" id="cropsGrid">
+            {%- for name, data in crops.items() %}
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition" data-crop="{{ name }}">
+                    <div class="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 relative">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-2xl font-bold capitalize">{{ name }}</h3>
+                            <div class="flex flex-col items-end">
+                                <span class="bg-white text-green-700 text-xs font-bold px-3 py-1 rounded-full mb-2">{{ data.info.trend }}</span>
+                                <span class="rating">⭐⭐⭐⭐⭐ 4.8</span>
+                            </div>
+                        </div>
+                        <p class="text-green-100 text-sm">👨‍🌾 {{ data.farmer_name }} • {{ data.info.location }}</p>
+                    </div>
+                    <div class="p-6">
+                        <!-- Price & Quality -->
+                        <div class="mb-4 pb-4 border-b">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <p class="text-gray-600 text-sm mb-1">Current Market Price</p>
+                                    <div class="text-3xl font-bold text-green-700">₹{{ data.info.price }}/kg</div>
+                                </div>
+                                <span class="bg-green-100 text-green-800 text-xs font-bold px-3 py-2 rounded">In Stock</span>
+                            </div>
+                            <p class="text-xs text-gray-500">{{ data.description }}</p>
+                            <div class="flex gap-2 mt-3 text-xs">
+                                <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Grade A</span>
+                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded">Certified Organic</span>
+                            </div>
+                        </div>
+
+                        <!-- Chart -->
+                        <div class="mb-4">
+                            <p class="text-xs font-bold text-gray-600 mb-2">10-Year Price History</p>
+                            <div class="chart-container">
+                                <canvas id="chart-{{ name }}"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Quick Info -->
+                        <div class="grid grid-cols-2 gap-2 mb-4 text-xs">
+                            <div class="bg-blue-50 p-2 rounded">
+                                <p class="text-gray-600">Min Order</p>
+                                <p class="font-bold text-blue-700">10 kg</p>
+                            </div>
+                            <div class="bg-purple-50 p-2 rounded">
+                                <p class="text-gray-600">Delivery</p>
+                                <p class="font-bold text-purple-700">2-3 Days</p>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="flex gap-2 mb-3">
+                            <button onclick="showBuyModal('{{ name }}', {{ data.info.price }}, '{{ data.farmer_name }}')" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 rounded-lg">🛒 Buy Now</button>
+                            <button onclick="showPredictionModal('{{ name }}')" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 rounded-lg">📊 Predict</button>
+                        </div>
+
+                        <!-- Farmer Contact -->
+                        <div class="border-t pt-3 flex gap-2 text-xs">
+                            <a href="https://wa.me/{{ data.phone }}" target="_blank" class="flex-1 text-center bg-green-100 text-green-700 font-bold py-2 rounded hover:bg-green-200">💬 WhatsApp</a>
+                            <button onclick="viewFarmerProfile('{{ name }}')" class="flex-1 text-center bg-blue-100 text-blue-700 font-bold py-2 rounded hover:bg-blue-200">👤 Profile</button>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                (function() {
+                    setTimeout(function() {
+                        const canvas = document.getElementById('chart-{{ name }}');
+                        if (!canvas) return;
+                        const ctx = canvas.getContext('2d');
+                        new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: ['Y1','Y2','Y3','Y4','Y5','Y6','Y7','Y8','Y9','Y10'],
+                                datasets: [{
+                                    label: 'Price',
+                                    data: {{ data.history | tojson }},
+                                    borderColor: '#16a34a',
+                                    backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                                    borderWidth: 2,
+                                    tension: 0.4,
+                                    fill: true,
+                                    pointRadius: 3,
+                                    pointBackgroundColor: '#16a34a'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    y: { ticks: { color: '#666' }, grid: { color: '#f0f0f0' } },
+                                    x: { ticks: { color: '#666' }, grid: { color: '#f0f0f0' } }
+                                }
+                            }
+                        });
+                    }, 50);
+                })();
+                </script>
+            {%- endfor %}
+            </div>
+
+            <!-- Orders Section -->
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6">📋 Your Recent Orders</h3>
+                <div id="orders-container" class="space-y-4">
+                    <p class="text-gray-500">Loading orders...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subscriptions Tab -->
+        <div id="subscriptions" class="tab-content">
+            <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-8 rounded-2xl mb-8">
+                <h2 class="text-4xl font-bold mb-4">🎁 Product Subscriptions</h2>
+                <p class="text-lg mb-6">Get regular deliveries with automatic billing. Never run out of fresh produce!</p>
+                <button onclick="showSubscriptionModal()" class="bg-white text-purple-700 font-bold px-6 py-3 rounded-lg">+ Create Subscription</button>
+            </div>
+
+            <!-- My Subscriptions -->
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6">📦 My Subscriptions</h3>
+                <div id="subscriptions-container" class="space-y-4">
+                    <p class="text-gray-500">Loading subscriptions...</p>
+                </div>
+            </div>
+
+            <!-- Subscription Benefits -->
+            <div class="bg-gradient-to-r from-green-100 to-blue-100 rounded-2xl p-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6">✨ Subscription Benefits</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white rounded-lg p-4">
+                        <div class="text-3xl mb-2">💰</div>
+                        <p class="font-bold">Save Up to 15%</p>
+                        <p class="text-xs text-gray-600">Exclusive subscription rates</p>
+                    </div>
+                    <div class="bg-white rounded-lg p-4">
+                        <div class="text-3xl mb-2">🚚</div>
+                        <p class="font-bold">Free Delivery</p>
+                        <p class="text-xs text-gray-600">On all subscription orders</p>
+                    </div>
+                    <div class="bg-white rounded-lg p-4">
+                        <div class="text-3xl mb-2">⏰</div>
+                        <p class="font-bold">Always Fresh</p>
+                        <p class="text-xs text-gray-600">Regular scheduled deliveries</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Farmer Dashboard Tab -->
+        <div id="farmer" class="tab-content">
+            <div class="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-8 rounded-2xl mb-8">
+                <h2 class="text-4xl font-bold mb-4">👨‍🌾 Farmer Dashboard</h2>
+                <p class="text-lg mb-6">Manage your products and track sales directly</p>
+                <div class="flex gap-3">
+                    <button onclick="showAddProductModal()" class="bg-white text-green-700 font-bold px-6 py-3 rounded-lg">+ Add Product</button>
+                    <button onclick="loadFarmerStats()" class="bg-green-500 hover:bg-green-400 font-bold px-6 py-3 rounded-lg">📊 Refresh Stats</button>
+                </div>
+            </div>
+
+            <!-- Farmer Statistics -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white rounded-lg shadow p-6 text-center">
+                    <div class="text-3xl font-bold text-green-700" id="totalProducts">0</div>
+                    <p class="text-gray-600">Total Products</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6 text-center">
+                    <div class="text-3xl font-bold text-blue-700" id="totalRevenue">₹0</div>
+                    <p class="text-gray-600">Total Revenue</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6 text-center">
+                    <div class="text-3xl font-bold text-orange-700" id="activeListings">0</div>
+                    <p class="text-gray-600">Active Listings</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6 text-center">
+                    <div class="text-3xl font-bold text-purple-700" id="pendingOrders">0</div>
+                    <p class="text-gray-600">Pending Orders</p>
+                </div>
+            </div>
+
+            <!-- Pending Orders for Farmer -->
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6">📥 Orders Received</h3>
+                <div id="farmer-orders-container" class="space-y-4">
+                    <p class="text-gray-500">Loading orders...</p>
+                </div>
+            </div>
+
+            <!-- Products Table -->
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6">📦 Your Products</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="p-4 text-left font-bold text-gray-700">Product Name</th>
+                                <th class="p-4 text-left font-bold text-gray-700">Price/Unit</th>
+                                <th class="p-4 text-left font-bold text-gray-700">Available (kg)</th>
+                                <th class="p-4 text-left font-bold text-gray-700">Quality</th>
+                                <th class="p-4 text-left font-bold text-gray-700">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-table-body">
+                            <tr><td colspan="5" class="p-4 text-center text-gray-500">Loading products...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analytics" class="tab-content">
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">📊 Market Analytics</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-bold text-gray-700 mb-4">Price Trends (All Crops)</h4>
+                        <div class="analytics-chart">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-700 mb-4">Crop Market Share</h4>
+                        <div class="analytics-chart">
+                            <canvas id="distributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works Section -->
+        <div class="bg-gradient-to-r from-orange-100 to-yellow-100 rounded-2xl p-8 mb-8">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">⚡ How It Works</h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-lg p-4 text-center">
+                    <div class="text-3xl mb-2">🔍</div>
+                    <p class="font-bold">Search & Filter</p>
+                    <p class="text-xs text-gray-600">Find premium crops by quality & price</p>
+                </div>
+                <div class="bg-white rounded-lg p-4 text-center">
+                    <div class="text-3xl mb-2">📊</div>
+                    <p class="font-bold">View Analytics</p>
+                    <p class="text-xs text-gray-600">Check 10-year price history & forecasts</p>
+                </div>
+                <div class="bg-white rounded-lg p-4 text-center">
+                    <div class="text-3xl mb-2">💳</div>
+                    <p class="font-bold">Place Order</p>
+                    <p class="text-xs text-gray-600">Direct transaction with farmer</p>
+                </div>
+                <div class="bg-white rounded-lg p-4 text-center">
+                    <div class="text-3xl mb-2">🚚</div>
+                    <p class="font-bold">Fast Delivery</p>
+                    <p class="text-xs text-gray-600">Farm-fresh to your doorstep</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="bg-white rounded-2xl shadow-lg p-8">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">❓ FAQ</h3>
+            <div class="space-y-4">
+                <div class="border rounded-lg p-4">
+                    <p class="font-bold text-gray-800 cursor-pointer">How do I know the crop quality?</p>
+                    <p class="text-sm text-gray-600 mt-2">All our crops are Grade A certified and come with quality ratings from previous buyers.</p>
+                </div>
+                <div class="border rounded-lg p-4">
+                    <p class="font-bold text-gray-800 cursor-pointer">What's the payment process?</p>
+                    <p class="text-sm text-gray-600 mt-2">Secure online payment with farmer directly. No hidden charges or middlemen fees.</p>
+                </div>
+                <div class="border rounded-lg p-4">
+                    <p class="font-bold text-gray-800 cursor-pointer">How accurate are price predictions?</p>
+                    <p class="text-sm text-gray-600 mt-2">Our AI model uses 10 years of historical data with 92% accuracy rate.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Login / Register</h3>
+                <button onclick="closeAuthModal()" class="text-gray-500 text-2xl">×</button>
+            </div>
+            <div class="flex gap-3 mb-6">
+                <button onclick="switchAuthTab('dealer')" class="flex-1 bg-orange-500 text-white font-bold py-2 rounded-lg">🏪 Dealer</button>
+                <button onclick="switchAuthTab('farmer')" class="flex-1 bg-green-500 text-white font-bold py-2 rounded-lg">👨‍🌾 Farmer</button>
+            </div>
+            <form id="authForm" class="space-y-4">
+                <input type="email" placeholder="Email" class="w-full px-4 py-2 border rounded-lg" required>
+                <input type="password" placeholder="Password" class="w-full px-4 py-2 border rounded-lg" required>
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700">Login</button>
+                <p class="text-center text-sm text-gray-600">Don't have account? <a href="#" class="text-blue-600 font-bold">Register here</a></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Buy Modal -->
+    <div id="buyModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">Place Order</h3>
+            <form id="orderForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Crop</label>
+                    <input type="text" id="cropName" readonly class="w-full px-4 py-2 border rounded-lg bg-gray-100">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Farmer</label>
+                    <input type="text" id="farmerName" readonly class="w-full px-4 py-2 border rounded-lg bg-gray-100">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Price (₹/kg)</label>
+                    <input type="number" id="unitPrice" readonly class="w-full px-4 py-2 border rounded-lg bg-gray-100">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Quantity (kg)</label>
+                    <input type="number" id="quantity" min="10" placeholder="Min 10 kg" class="w-full px-4 py-2 border rounded-lg" required>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <p class="text-sm text-gray-600">Total Price</p>
+                    <p class="text-3xl font-bold text-green-700">₹<span id="totalPrice">0</span></p>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Your Name</label>
+                    <input type="text" id="dealerName" placeholder="Your name" class="w-full px-4 py-2 border rounded-lg" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Phone</label>
+                    <input type="tel" id="dealerPhone" placeholder="Phone number" class="w-full px-4 py-2 border rounded-lg" required>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeBuyModal()" class="flex-1 bg-gray-300 text-gray-800 font-bold py-2 rounded-lg">Cancel</button>
+                    <button type="submit" class="flex-1 bg-green-600 text-white font-bold py-2 rounded-lg">Confirm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Prediction Modal -->
+    <div id="predictionModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">📈 AI Price Forecast</h3>
+                <button onclick="closePredictionModal()" class="text-gray-500 text-2xl">×</button>
+            </div>
+            <div id="predictionContent" class="space-y-4">
+                <p class="text-gray-500">Loading forecast...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Farmer Profile Modal -->
+    <div id="profileModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">👨‍🌾 Farmer Profile</h3>
+                <button onclick="closeProfileModal()" class="text-gray-500 text-2xl">×</button>
+            </div>
+            <div id="profileContent" class="space-y-4">
+                <p class="text-gray-500">Loading profile...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Product Modal (Farmer) -->
+    <div id="addProductModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">➕ Add Product</h3>
+                <button onclick="closeAddProductModal()" class="text-gray-500 text-2xl">×</button>
+            </div>
+            <form id="addProductForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Product Name</label>
+                    <input type="text" id="productName" placeholder="e.g., Organic Tomatoes" class="w-full px-4 py-2 border rounded-lg" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Price per kg</label>
+                        <input type="number" id="productPrice" placeholder="50" min="0" step="0.01" class="w-full px-4 py-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Quantity (kg)</label>
+                        <input type="number" id="productQuantity" placeholder="100" min="0" step="0.01" class="w-full px-4 py-2 border rounded-lg" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Quality Grade</label>
+                    <select id="productQuality" class="w-full px-4 py-2 border rounded-lg">
+                        <option>Grade A</option>
+                        <option>Grade A+</option>
+                        <option>Grade B</option>
+                        <option>Premium</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Description</label>
+                    <textarea id="productDescription" placeholder="Describe your product..." class="w-full px-4 py-2 border rounded-lg" rows="3"></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeAddProductModal()" class="flex-1 bg-gray-300 text-gray-800 font-bold py-2 rounded-lg">Cancel</button>
+                    <button type="submit" class="flex-1 bg-green-600 text-white font-bold py-2 rounded-lg">Add Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div id="editProductModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">✏️ Edit Product</h3>
+                <button onclick="closeEditProductModal()" class="text-gray-500 text-2xl">×</button>
+            </div>
+            <form id="editProductForm" class="space-y-4">
+                <input type="hidden" id="editProductId">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Product Name</label>
+                    <input type="text" id="editProductName" class="w-full px-4 py-2 border rounded-lg" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Price per kg</label>
+                        <input type="number" id="editProductPrice" min="0" step="0.01" class="w-full px-4 py-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Quantity (kg)</label>
+                        <input type="number" id="editProductQuantity" min="0" step="0.01" class="w-full px-4 py-2 border rounded-lg" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Quality Grade</label>
+                    <select id="editProductQuality" class="w-full px-4 py-2 border rounded-lg">
+                        <option>Grade A</option>
+                        <option>Grade A+</option>
+                        <option>Grade B</option>
+                        <option>Premium</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Description</label>
+                    <textarea id="editProductDescription" class="w-full px-4 py-2 border rounded-lg" rows="3"></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeEditProductModal()" class="flex-1 bg-gray-300 text-gray-800 font-bold py-2 rounded-lg">Cancel</button>
+                    <button type="submit" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg">Update Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Subscription Modal -->
+    <div id="subscriptionModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 my-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">📦 Create Subscription</h3>
+                <button onclick="closeSubscriptionModal()" class="text-gray-500 text-2xl">×</button>
+            </div>
+            <form id="subscriptionForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Select Farmer</label>
+                    <select id="subscriptionFarmer" class="w-full px-4 py-2 border rounded-lg" onchange="loadFarmerProducts()" required>
+                        <option value="">Choose farmer...</option>
+                        <option value="farmer_001">Ahmed Khan (Saffron, Tomatoes)</option>
+                        <option value="farmer_002">Ravi Pillai (Vanilla, Rice)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Product</label>
+                    <select id="subscriptionProduct" class="w-full px-4 py-2 border rounded-lg" required>
+                        <option value="">Select product...</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Quantity (kg)</label>
+                        <input type="number" id="subscriptionQuantity" placeholder="10" min="1" step="0.1" class="w-full px-4 py-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Frequency</label>
+                        <select id="subscriptionFrequency" class="w-full px-4 py-2 border rounded-lg" required>
+                            <option value="weekly">Weekly</option>
+                            <option value="biweekly">Bi-weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <p class="text-sm text-gray-600">Estimated Monthly Cost</p>
+                    <p class="text-3xl font-bold text-purple-700">₹<span id="subscriptionCost">0</span></p>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Your Name</label>
+                    <input type="text" id="buyerName" placeholder="Your name" class="w-full px-4 py-2 border rounded-lg" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Phone</label>
+                    <input type="tel" id="buyerPhone" placeholder="Phone number" class="w-full px-4 py-2 border rounded-lg" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Email</label>
+                    <input type="email" id="buyerEmail" placeholder="Email address" class="w-full px-4 py-2 border rounded-lg">
+                </div>
+                <div class="flex items-center gap-2 bg-blue-50 p-3 rounded-lg">
+                    <input type="checkbox" id="autoRenew" checked class="w-4 h-4">
+                    <label for="autoRenew" class="text-sm text-gray-700">Auto-renew subscription</label>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeSubscriptionModal()" class="flex-1 bg-gray-300 text-gray-800 font-bold py-2 rounded-lg">Cancel</button>
+                    <button type="submit" class="flex-1 bg-purple-600 text-white font-bold py-2 rounded-lg">Subscribe Now</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Tab Management
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            if (tabName === 'analytics') initAnalytics();
+        }
+
+        // Filter Crops
+        function filterCrops(filter) {
+            const crops = document.querySelectorAll('[data-crop]');
+            crops.forEach(crop => crop.style.display = 'block');
+            if (filter !== 'all') {
+                alert(`Filter: ${filter} - Coming soon!`);
+            }
+        }
+
+        // Search Crops
+        document.getElementById('searchCrop').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll('[data-crop]').forEach(crop => {
+                crop.style.display = crop.dataset.crop.includes(query) ? 'block' : 'none';
+            });
+        });
+
+        // Quantity & Price Calculation
+        document.getElementById('quantity').addEventListener('input', function() {
+            const price = parseFloat(document.getElementById('unitPrice').value) || 0;
+            const qty = parseFloat(this.value) || 0;
+            document.getElementById('totalPrice').textContent = (price * qty).toFixed(0);
+        });
+
+        // Modal Functions
+        function showBuyModal(crop, price, farmer) {
+            document.getElementById('cropName').value = crop;
+            document.getElementById('farmerName').value = farmer;
+            document.getElementById('unitPrice').value = price;
+            document.getElementById('quantity').value = '10';
+            document.getElementById('totalPrice').textContent = (price * 10).toFixed(0);
+            document.getElementById('buyModal').classList.remove('hidden');
+        }
+
+        function closeBuyModal() {
+            document.getElementById('buyModal').classList.add('hidden');
+        }
+
+        function openAuthModal() {
+            document.getElementById('authModal').classList.remove('hidden');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+        }
+
+        function switchAuthTab(type) {
+            alert(`${type === 'dealer' ? 'Dealer' : 'Farmer'} Login - Feature coming soon!`);
+        }
+
+        function showPredictionModal(crop) {
+            fetch(`/api/predict/${crop}`)
+                .then(res => res.json())
+                .then(data => {
+                    let html = `<div class="bg-blue-50 p-4 rounded-lg mb-4"><p class="text-sm text-gray-600">Current Price</p><p class="text-3xl font-bold text-blue-700">₹${data.current_price}/kg</p></div><table class="w-full"><thead class="bg-blue-100"><tr><th class="p-3 text-left">Date</th><th class="p-3 text-right">Predicted Price</th><th class="p-3 text-right">Change</th></tr></thead><tbody>`;
+                    data.dates.forEach((date, i) => {
+                        const price = data.predictions[i].toFixed(0);
+                        const change = ((price - data.current_price) / data.current_price * 100).toFixed(1);
+                        const arrow = change >= 0 ? '📈' : '📉';
+                        html += `<tr class="border-b"><td class="p-3">${date}</td><td class="p-3 text-right"><strong>₹${price}</strong></td><td class="p-3 text-right">${arrow} ${change}%</td></tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('predictionContent').innerHTML = html;
+                });
+            document.getElementById('predictionModal').classList.remove('hidden');
+        }
+
+        function closePredictionModal() {
+            document.getElementById('predictionModal').classList.add('hidden');
+        }
+
+        function viewFarmerProfile(crop) {
+            document.getElementById('profileContent').innerHTML = `
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-3xl">👨‍🌾</div>
+                    <div>
+                        <h4 class="text-xl font-bold text-gray-800">Farmer Profile</h4>
+                        <p class="text-sm text-gray-600">Specialized in ${crop}</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-green-50 p-4 rounded">
+                        <p class="text-gray-600 text-xs">Avg Rating</p>
+                        <p class="font-bold text-green-700">⭐ 4.8/5</p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded">
+                        <p class="text-gray-600 text-xs">Total Sales</p>
+                        <p class="font-bold text-blue-700">1,240+ Orders</p>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-700 mb-4">Premium quality ${crop} producer with 15+ years of farming experience. Farm-fresh crops delivered within 2-3 days.</p>
+                <button class="w-full bg-orange-500 text-white font-bold py-2 rounded-lg">Contact Farmer</button>
+            `;
+            document.getElementById('profileModal').classList.remove('hidden');
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profileModal').classList.add('hidden');
+        }
+
+        // Order Form Submission
+        document.getElementById('orderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const order = {
+                crop: document.getElementById('cropName').value,
+                quantity: parseInt(document.getElementById('quantity').value),
+                unit: 'kg'
+            };
+            try {
+                const res = await fetch('/api/order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(order)
+                });
+                
+                if (res.status === 401) {
+                    alert('❌ Please log in first to place an order!');
+                    return;
+                }
+                
+                const result = await res.json();
+                if (result.error) {
+                    alert('Error: ' + result.error);
+                    return;
+                }
+                
+                alert(`✅ Order Placed!\nOrder ID: ${result.order_id}`);
+                closeBuyModal();
+                loadOrders();
+            } catch (err) {
+                alert('Error: ' + err);
+            }
+        });
+
+        // Load Orders based on user type
+        function loadOrders() {
+            // Get current user info
+            fetch('/api/user-info')
+                .then(res => res.json())
+                .then(user => {
+                    // Determine which endpoint to call based on user type
+                    let endpoint = '/api/orders';
+                    if (user.user_type === 'farmer') {
+                        endpoint = `/api/orders/farmer/${user.user_id}`;
+                    } else if (user.user_type === 'buyer') {
+                        endpoint = `/api/orders/buyer/${user.user_id}`;
+                    }
+                    
+                    fetch(endpoint)
+                        .then(res => res.json())
+                        .then(orders => {
+                            const container = document.getElementById('orders-container');
+                            if (orders.length === 0) {
+                                container.innerHTML = '<p class="text-gray-500">No orders yet. ' + 
+                                    (user.user_type === 'farmer' ? 'Waiting for buyers to place orders...' : 'Place your first order!') + '</p>';
+                                return;
+                            }
+                            container.innerHTML = orders.map(order => `
+                                <div class="border-l-4 border-green-500 bg-green-50 p-4 rounded">
+                                    <div class="flex justify-between">
+                                        <div>
+                                            <p class="font-bold">${order.order_id}</p>
+                                            <p class="text-sm text-gray-600">${order.crop.toUpperCase()} • ${order.quantity} kg • ₹${order.total_price}</p>
+                                            <p class="text-xs text-gray-500 mt-1">📍 ${user.user_type === 'farmer' ? 'Buyer: ' + (order.buyer_name || 'Unknown') : 'Farmer: ' + (order.farmer_name || 'Unknown')}</p>
+                                        </div>
+                                        <span class="bg-green-200 text-green-800 px-3 py-1 rounded-full text-xs font-bold">${order.status}</span>
+                                    </div>
+                                </div>
+                            `).join('');
+                        });
+                })
+                .catch(err => {
+                    // If not logged in, show all orders
+                    fetch('/api/orders')
+                        .then(res => res.json())
+                        .then(orders => {
+                            const container = document.getElementById('orders-container');
+                            if (orders.length === 0) {
+                                container.innerHTML = '<p class="text-gray-500">No orders yet.</p>';
+                                return;
+                            }
+                            container.innerHTML = orders.map(order => `
+                                <div class="border-l-4 border-green-500 bg-green-50 p-4 rounded">
+                                    <div class="flex justify-between">
+                                        <div>
+                                            <p class="font-bold">${order.order_id}</p>
+                                            <p class="text-sm text-gray-600">${order.crop.toUpperCase()} • ${order.quantity} kg • ₹${order.total_price}</p>
+                                        </div>
+                                        <span class="bg-green-200 text-green-800 px-3 py-1 rounded-full text-xs font-bold">${order.status}</span>
+                                    </div>
+                                </div>
+                            `).join('');
+                        });
+                });
+        }
+
+        // Analytics
+        function initAnalytics() {
+            setTimeout(() => {
+                // Trend Chart
+                const ctx1 = document.getElementById('trendChart');
+                if (ctx1) {
+                    new Chart(ctx1, {
+                        type: 'line',
+                        data: {
+                            labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                            datasets: [{
+                                label: 'Avg Market Price (₹/kg)',
+                                data: [1500, 1600, 1450, 1700, 1900, 2100, 1950, 1800, 1700, 1600, 1500, 1800],
+                                borderColor: '#059669',
+                                backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: true } },
+                            scales: {
+                                y: { ticks: { color: '#666' }, grid: { color: '#f0f0f0' } },
+                                x: { ticks: { color: '#666' }, grid: { color: '#f0f0f0' } }
+                            }
+                        }
+                    });
+                }
+
+                // Distribution Chart
+                const ctx2 = document.getElementById('distributionChart');
+                if (ctx2) {
+                    new Chart(ctx2, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Saffron', 'Vanilla', 'Ginseng', 'Truffles', 'Cardamom'],
+                            datasets: [{
+                                data: [25, 20, 15, 25, 15],
+                                backgroundColor: ['#dc2626', '#f59e0b', '#eab308', '#8b5cf6', '#10b981']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: true, position: 'bottom' } }
+                        }
+                    });
+                }
+            }, 100);
+        }
+
+        // ========== FARMER DASHBOARD FUNCTIONS ==========
+        let currentFarmerId = 'farmer_001'; // Default farmer ID
+
+        function showAddProductModal() {
+            document.getElementById('addProductForm').reset();
+            document.getElementById('addProductModal').classList.remove('hidden');
+        }
+
+        function closeAddProductModal() {
+            document.getElementById('addProductModal').classList.add('hidden');
+        }
+
+        function closeEditProductModal() {
+            document.getElementById('editProductModal').classList.add('hidden');
+        }
+
+        document.getElementById('addProductForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const product = {
+                name: document.getElementById('productName').value,
+                price: parseFloat(document.getElementById('productPrice').value),
+                quantity: parseFloat(document.getElementById('productQuantity').value),
+                description: document.getElementById('productDescription').value,
+                quality: document.getElementById('productQuality').value,
+                unit: 'kg'
+            };
+
+            try {
+                const res = await fetch(`/api/farmer/products/${currentFarmerId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(product)
+                });
+                const result = await res.json();
+                alert('✅ Product added successfully!');
+                closeAddProductModal();
+                loadFarmerProducts();
+                loadMarketplaceCrops(); // Reload marketplace to show new product
+            } catch (err) {
+                alert('Error adding product: ' + err);
+            }
+        });
+
+        document.getElementById('editProductForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const productId = document.getElementById('editProductId').value;
+            const product = {
+                name: document.getElementById('editProductName').value,
+                price: parseFloat(document.getElementById('editProductPrice').value),
+                quantity: parseFloat(document.getElementById('editProductQuantity').value),
+                description: document.getElementById('editProductDescription').value,
+                quality: document.getElementById('editProductQuality').value,
+                unit: 'kg'
+            };
+
+            try {
+                const res = await fetch(`/api/farmer/products/${currentFarmerId}/${productId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(product)
+                });
+                const result = await res.json();
+                alert('✅ Product updated successfully!');
+                closeEditProductModal();
+                loadFarmerProducts();
+            } catch (err) {
+                alert('Error updating product: ' + err);
+            }
+        });
+
+        function editProduct(productId) {
+            fetch(`/api/farmer/products/${currentFarmerId}`)
+                .then(res => res.json())
+                .then(products => {
+                    const product = products.find(p => p.product_id === productId);
+                    if (product) {
+                        document.getElementById('editProductId').value = product.product_id;
+                        document.getElementById('editProductName').value = product.name;
+                        document.getElementById('editProductPrice').value = product.price;
+                        document.getElementById('editProductQuantity').value = product.quantity;
+                        document.getElementById('editProductDescription').value = product.description;
+                        document.getElementById('editProductQuality').value = product.quality;
+                        document.getElementById('editProductModal').classList.remove('hidden');
+                    }
+                });
+        }
+
+        function deleteProduct(productId) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                fetch(`/api/farmer/products/${currentFarmerId}/${productId}`, {
+                    method: 'DELETE'
+                })
+                .then(res => res.json())
+                .then(data => {
+                    alert('✅ Product deleted!');
+                    loadFarmerProducts();
+                })
+                .catch(err => alert('Error: ' + err));
+            }
+        }
+
+        function loadFarmerProducts() {
+            fetch(`/api/farmer/products/${currentFarmerId}`)
+                .then(res => res.json())
+                .then(products => {
+                    const tbody = document.getElementById('products-table-body');
+                    if (products.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">No products yet. Add your first product!</td></tr>';
+                        return;
+                    }
+
+                    let totalRevenue = 0;
+                    tbody.innerHTML = products.map(product => {
+                        totalRevenue += product.price * product.quantity;
+                        return `
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="p-4"><strong>${product.name}</strong><br><span class="text-xs text-gray-500">${product.description || 'No description'}</span></td>
+                                <td class="p-4">₹${product.price.toFixed(2)}</td>
+                                <td class="p-4">${product.quantity} ${product.unit}</td>
+                                <td class="p-4"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">${product.quality}</span></td>
+                                <td class="p-4">
+                                    <button onclick="editProduct('${product.product_id}')" class="text-blue-600 hover:text-blue-800 text-sm font-bold mr-3">Edit</button>
+                                    <button onclick="deleteProduct('${product.product_id}')" class="text-red-600 hover:text-red-800 text-sm font-bold">Delete</button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    // Update stats
+                    document.getElementById('totalProducts').textContent = products.length;
+                    document.getElementById('totalRevenue').textContent = '₹' + totalRevenue.toFixed(0);
+                    document.getElementById('activeListings').textContent = products.filter(p => p.quantity > 0).length;
+                    document.getElementById('pendingOrders').textContent = '2'; // Sample data
+                });
+        }
+
+        function loadFarmerStats() {
+            loadFarmerProducts();
+            loadFarmerOrders();
+            alert('✅ Stats refreshed!');
+        }
+
+        // Load orders received by farmer
+        async function loadFarmerOrders() {
+            try {
+                const userRes = await fetch('/api/user-info');
+                if (!userRes.ok) return; // Not logged in
+                
+                const user = await userRes.json();
+                if (user.user_type !== 'farmer') return; // Not a farmer
+                
+                const ordersRes = await fetch(`/api/orders/farmer/${user.user_id}`);
+                const orders = await ordersRes.json();
+                
+                const container = document.getElementById('farmer-orders-container');
+                if (!container) return;
+                
+                if (orders.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500">No orders received yet. Waiting for buyers...</p>';
+                    return;
+                }
+                
+                container.innerHTML = orders.map(order => {
+                    const isPending = order.status === 'Pending Confirmation';
+                    return `
+                        <div class="border-l-4 ${isPending ? 'border-orange-500 bg-orange-50' : 'border-green-500 bg-green-50'} p-4 rounded">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-bold">${order.order_id}</p>
+                                    <p class="text-sm text-gray-600">${order.crop.toUpperCase()} • ${order.quantity} kg • ₹${order.total_price}</p>
+                                    <p class="text-xs text-gray-500 mt-1">👤 Buyer: ${order.buyer_name}</p>
+                                    <p class="text-xs text-gray-500">📱 ${order.buyer_name} (Need to add buyer phone to orders.json)</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <span class="bg-orange-200 text-orange-800 px-3 py-1 rounded-full text-xs font-bold">${order.status}</span>
+                                    ${isPending ? `
+                                        <button onclick="confirmOrder('${order.order_id}')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-bold">✓ Confirm</button>
+                                        <button onclick="rejectOrder('${order.order_id}')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-bold">✕ Reject</button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                // Update pending orders count
+                const pendingCount = orders.filter(o => o.status === 'Pending Confirmation').length;
+                document.getElementById('pendingOrders').textContent = pendingCount;
+            } catch (error) {
+                console.error('Error loading farmer orders:', error);
+            }
+        }
+
+        // Confirm order as farmer
+        async function confirmOrder(orderId) {
+            if (!confirm('Confirm this order?')) return;
+            
+            try {
+                const res = await fetch(`/api/orders/${orderId}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'Confirmed' })
+                });
+                
+                const data = await res.json();
+                if (res.ok) {
+                    alert(`✅ Order confirmed!\nOrder ID: ${orderId}`);
+                    loadFarmerOrders();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error confirming order: ' + error);
+            }
+        }
+
+        // Reject order as farmer
+        async function rejectOrder(orderId) {
+            if (!confirm('Reject this order? (This cannot be undone)')) return;
+            
+            try {
+                const res = await fetch(`/api/orders/${orderId}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'Rejected' })
+                });
+                
+                const data = await res.json();
+                if (res.ok) {
+                    alert(`❌ Order rejected!\nOrder ID: ${orderId}`);
+                    loadFarmerOrders();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error rejecting order: ' + error);
+            }
+        }
+
+        // ========== SUBSCRIPTION FUNCTIONS ==========
+        const farmerProducts = {
+            'farmer_001': [
+                { id: 'saffron', name: 'Organic Tomatoes', price: 45 },
+                { id: 'tomatoes', name: 'Green Bell Peppers', price: 80 }
+            ],
+            'farmer_002': [
+                { id: 'rice', name: 'Basmati Rice', price: 120 }
+            ]
+        };
+
+        function showSubscriptionModal() {
+            document.getElementById('subscriptionForm').reset();
+            document.getElementById('subscriptionModal').classList.remove('hidden');
+        }
+
+        function closeSubscriptionModal() {
+            document.getElementById('subscriptionModal').classList.add('hidden');
+        }
+
+        function loadSubscriptionProducts() {
+            const farmerId = document.getElementById('subscriptionFarmer').value;
+            const productSelect = document.getElementById('subscriptionProduct');
+            productSelect.innerHTML = '<option value="">Select product...</option>';
+
+            if (farmerId && farmerProducts[farmerId]) {
+                farmerProducts[farmerId].forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product.price;
+                    option.textContent = `${product.name} (₹${product.price}/kg)`;
+                    productSelect.appendChild(option);
+                });
+            }
+            updateSubscriptionCost();
+        }
+
+        function updateSubscriptionCost() {
+            const quantity = parseFloat(document.getElementById('subscriptionQuantity').value) || 0;
+            const pricePerUnit = parseFloat(document.getElementById('subscriptionProduct').value) || 0;
+            const frequency = document.getElementById('subscriptionFrequency').value;
+            
+            let monthlyCost = 0;
+            if (frequency === 'weekly') {
+                monthlyCost = quantity * pricePerUnit * 4.33;
+            } else if (frequency === 'biweekly') {
+                monthlyCost = quantity * pricePerUnit * 2;
+            } else {
+                monthlyCost = quantity * pricePerUnit;
+            }
+            
+            document.getElementById('subscriptionCost').textContent = monthlyCost.toFixed(0);
+        }
+
+        document.getElementById('subscriptionFarmer')?.addEventListener('change', loadSubscriptionProducts);
+        document.getElementById('subscriptionQuantity')?.addEventListener('input', updateSubscriptionCost);
+        document.getElementById('subscriptionProduct')?.addEventListener('change', updateSubscriptionCost);
+        document.getElementById('subscriptionFrequency')?.addEventListener('change', updateSubscriptionCost);
+
+        document.getElementById('subscriptionForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const farmerId = document.getElementById('subscriptionFarmer').value;
+            const productSelect = document.getElementById('subscriptionProduct');
+            const selectedOption = productSelect.options[productSelect.selectedIndex];
+            const productName = selectedOption.text.split('(')[0].trim();
+            
+            const subscription = {
+                buyer_name: document.getElementById('buyerName').value,
+                buyer_phone: document.getElementById('buyerPhone').value,
+                buyer_email: document.getElementById('buyerEmail').value,
+                farmer_id: farmerId,
+                product_name: productName,
+                quantity: parseFloat(document.getElementById('subscriptionQuantity').value),
+                price_per_unit: parseFloat(document.getElementById('subscriptionProduct').value),
+                period: document.getElementById('subscriptionFrequency').value,
+                unit: 'kg'
+            };
+
+            try {
+                const res = await fetch('/api/subscriptions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(subscription)
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    alert(`✅ Subscription created!\nID: ${result.subscription.subscription_id}\nFirst delivery: ${new Date(result.subscription.next_delivery).toLocaleDateString()}`);
+                    closeSubscriptionModal();
+                    loadSubscriptions();
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (err) {
+                alert('Error creating subscription: ' + err);
+            }
+        });
+
+        function loadSubscriptions() {
+            fetch('/api/subscriptions')
+                .then(res => res.json())
+                .then(subscriptions => {
+                    const container = document.getElementById('subscriptions-container');
+                    if (!subscriptions || subscriptions.length === 0) {
+                        container.innerHTML = '<p class="text-gray-500">No subscriptions yet. Create one to get started!</p>';
+                        return;
+                    }
+                    
+                    container.innerHTML = subscriptions.map(sub => {
+                        const nextDelivery = new Date(sub.next_delivery).toLocaleDateString();
+                        const statusColor = sub.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                        return `
+                            <div class="border-l-4 border-purple-500 bg-purple-50 p-4 rounded">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div>
+                                        <p class="font-bold">${sub.subscription_id}</p>
+                                        <p class="text-sm text-gray-600">${sub.buyer_name} • ${sub.product_name}</p>
+                                    </div>
+                                    <span class="${statusColor} px-3 py-1 rounded-full text-xs font-bold">${sub.status}</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 text-sm mb-3">
+                                    <div><span class="text-gray-600">Quantity:</span> <strong>${sub.quantity} ${sub.unit}</strong></div>
+                                    <div><span class="text-gray-600">Frequency:</span> <strong>${sub.frequency}</strong></div>
+                                    <div><span class="text-gray-600">Monthly Cost:</span> <strong>₹${sub.total_cost.toFixed(0)}</strong></div>
+                                    <div><span class="text-gray-600">Next Delivery:</span> <strong>${nextDelivery}</strong></div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="editSubscription('${sub.subscription_id}')" class="text-blue-600 hover:text-blue-800 text-sm font-bold">Edit</button>
+                                    <button onclick="cancelSubscription('${sub.subscription_id}')" class="text-red-600 hover:text-red-800 text-sm font-bold">Cancel</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                });
+        }
+
+        function editSubscription(subId) {
+            alert('Edit feature coming soon!');
+        }
+
+        function cancelSubscription(subId) {
+            if (confirm('Are you sure you want to cancel this subscription?')) {
+                fetch(`/api/subscriptions/${subId}`, {
+                    method: 'DELETE'
+                })
+                .then(res => res.json())
+                .then(data => {
+                    alert('✅ Subscription cancelled');
+                    loadSubscriptions();
+                })
+                .catch(err => alert('Error: ' + err));
+            }
+        }
+
+        // Initialize on page load
+        checkUserLogin();
+        loadOrders();
+        loadMarketplaceCrops();
+
+        // Load marketplace crops from API (includes farmer products)
+        async function loadMarketplaceCrops() {
+            try {
+                const res = await fetch('/api/marketplace-crops');
+                const crops = await res.json();
+                
+                const cropsGrid = document.getElementById('cropsGrid');
+                cropsGrid.innerHTML = '';
+                
+                // Create crop cards
+                Object.entries(crops).forEach(([cropKey, data]) => {
+                    const cropCard = document.createElement('div');
+                    cropCard.className = 'bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition';
+                    cropCard.setAttribute('data-crop', cropKey);
+                    
+                    const isFarmerProduct = data.is_farmer_product || false;
+                    
+                    cropCard.innerHTML = `
+                        <div class="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 relative">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="text-2xl font-bold capitalize">${cropKey.replace(/_/g, ' ')}</h3>
+                                <div class="flex flex-col items-end">
+                                    <span class="bg-white text-green-700 text-xs font-bold px-3 py-1 rounded-full mb-2">${data.info.trend}</span>
+                                    <span class="rating">⭐⭐⭐⭐⭐ 4.8</span>
+                                </div>
+                            </div>
+                            <p class="text-green-100 text-sm">👨‍🌾 ${data.farmer_name} • ${data.info.location}</p>
+                            ${isFarmerProduct ? '<span class="text-xs bg-yellow-300 text-yellow-900 px-2 py-1 rounded mt-2 inline-block">✨ Farmer Product</span>' : ''}
+                        </div>
+                        <div class="p-6">
+                            <!-- Price & Quality -->
+                            <div class="mb-4 pb-4 border-b">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div>
+                                        <p class="text-gray-600 text-sm mb-1">Current Market Price</p>
+                                        <div class="text-3xl font-bold text-green-700">₹${data.info.price}/kg</div>
+                                    </div>
+                                    <span class="bg-green-100 text-green-800 text-xs font-bold px-3 py-2 rounded">In Stock</span>
+                                </div>
+                                <p class="text-xs text-gray-500">${data.description}</p>
+                                <div class="flex gap-2 mt-3 text-xs">
+                                    <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">${data.quality || 'Grade A'}</span>
+                                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded">Certified Organic</span>
+                                </div>
+                            </div>
+
+                            <!-- Quick Info -->
+                            <div class="grid grid-cols-2 gap-2 mb-4 text-xs">
+                                <div class="bg-blue-50 p-2 rounded">
+                                    <p class="text-gray-600">Min Order</p>
+                                    <p class="font-bold text-blue-700">10 kg</p>
+                                </div>
+                                <div class="bg-purple-50 p-2 rounded">
+                                    <p class="text-gray-600">Delivery</p>
+                                    <p class="font-bold text-purple-700">2-3 Days</p>
+                                </div>
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="flex gap-2 mb-3">
+                                <button onclick="showBuyModal('${cropKey}', ${data.info.price}, '${data.farmer_name}')" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 rounded-lg">🛒 Buy Now</button>
+                                <button onclick="showPredictionModal('${cropKey}')" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 rounded-lg">📊 Predict</button>
+                            </div>
+
+                            <!-- Farmer Contact -->
+                            <div class="border-t pt-3 flex gap-2 text-xs">
+                                <a href="https://wa.me/${data.phone}" target="_blank" class="flex-1 text-center bg-green-100 text-green-700 font-bold py-2 rounded hover:bg-green-200">💬 WhatsApp</a>
+                                <button onclick="viewFarmerProfile('${cropKey}')" class="flex-1 text-center bg-blue-100 text-blue-700 font-bold py-2 rounded hover:bg-blue-200">👤 Profile</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    cropsGrid.appendChild(cropCard);
+                });
+                
+                // Update crop count
+                document.querySelector('.grid.grid-cols-1.md\\:grid-cols-4 .text-3xl.font-bold.text-green-700').textContent = Object.keys(crops).length;
+            } catch (error) {
+                console.error('Error loading marketplace crops:', error);
+            }
+        }
+
+        // Check if user is logged in
+        async function checkUserLogin() {
+            try {
+                const response = await fetch('/api/user-info');
+                if (response.ok) {
+                    const user = await response.json();
+                    // User is logged in
+                    document.getElementById('userInfo').style.display = 'flex';
+                    document.getElementById('loginBtn').style.display = 'none';
+                    document.getElementById('userName').textContent = user.name;
+                    document.getElementById('userType').textContent = user.user_type.charAt(0).toUpperCase() + user.user_type.slice(1);
+                    
+                    // Load farmer orders if user is a farmer
+                    if (user.user_type === 'farmer') {
+                        loadFarmerOrders();
+                    }
+                } else {
+                    // User is not logged in
+                    document.getElementById('userInfo').style.display = 'none';
+                    document.getElementById('loginBtn').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error checking user login:', error);
+                document.getElementById('userInfo').style.display = 'none';
+                document.getElementById('loginBtn').style.display = 'block';
+            }
+        }
+
+        // Logout function
+        async function logout() {
+            try {
+                const response = await fetch('/api/logout', {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    alert('✅ Logged out successfully!');
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                alert('Error logging out: ' + error);
+            }
+        }
+    </script>
+</body>
+</html>

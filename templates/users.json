@@ -1,0 +1,78 @@
+{
+  "farmers": [
+    {
+      "user_id": "farmer_001",
+      "name": "Ahmed Khan",
+      "email": "farmer1@gmail.com",
+      "password": "farmer1",
+      "phone": "919876543210",
+      "location": "Kashmir",
+      "crops_grown": ["Saffron"]
+    },
+    {
+      "user_id": "farmer_002",
+      "name": "Ravi Pillai",
+      "email": "farmer2@gmail.com",
+      "password": "farmer2",
+      "phone": "918888888888",
+      "location": "Kerala",
+      "crops_grown": ["Vanilla"]
+    },
+    {
+      "user_id": "farmer_003",
+      "name": "Rajesh Kumar",
+      "email": "farmer3@gmail.com",
+      "password": "farmer3",
+      "phone": "917777777777",
+      "location": "Himalayas",
+      "crops_grown": ["Ginseng"]
+    },
+    {
+      "user_id": "farmer_004",
+      "name": "Vikram Singh",
+      "email": "farmer4@gmail.com",
+      "password": "farmer4",
+      "phone": "916666666666",
+      "location": "Himachal",
+      "crops_grown": ["Truffles"]
+    },
+    {
+      "user_id": "farmer_005",
+      "name": "Arjun Nair",
+      "email": "farmer5@gmail.com",
+      "password": "farmer5",
+      "phone": "915555555555",
+      "location": "Nilgiris",
+      "crops_grown": ["Cardamom"]
+    }
+  ],
+  "buyers": [
+    {
+      "user_id": "buyer_001",
+      "name": "Ramesh Dealer",
+      "email": "buyer1@gmail.com",
+      "password": "buyer1",
+      "phone": "8765432109",
+      "company": "Fresh Produce Trading",
+      "location": "Delhi"
+    },
+    {
+      "user_id": "buyer_002",
+      "name": "Neha Enterprises",
+      "email": "buyer2@gmail.com",
+      "password": "buyer2",
+      "phone": "8765432110",
+      "company": "Organic Foods Ltd",
+      "location": "Bangalore"
+    },
+    {
+      "user_id": "buyer_003",
+      "name": "Mohit Distributors",
+      "email": "buyer3@gmail.com",
+      "password": "buyer3",
+      "phone": "8765432111",
+      "company": "Wholesale Agriculture",
+      "location": "Chennai"
+    }
+  ]
+}

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agri-Direct Login - Voice-Powered Farm Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .login-container {
+            background: #f0f0f0;
+            padding: 30px;
+            border-radius: 12px;
+            border: 3px solid #000000;
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .login-container h1 {
+            text-align: center;
+            color: #000000;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        .login-container p {
+            text-align: center;
+            color: #000000;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #000000;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #000000;
+            border-radius: 8px;
+            font-size: 16px;
+            background: #ffffff;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #00ff00;
+            background: #ffff00;
+        }
+
+        .big-button {
+            width: 100%;
+            padding: 15px;
+            background: #00ff00;
+            color: #000000;
+            border: 3px solid #000000;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .big-button:hover {
+            background: #00cc00;
+        }
+
+        .error-message {
+            color: #ff0000;
+            font-size: 16px;
+            margin-top: 12px;
+            display: none;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .voice-hint {
+            text-align: center;
+            color: #000000;
+            margin-top: 15px;
+            font-size: 16px;
+        }
+
+        .user-type-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .user-type-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #000000;
+            border-radius: 8px;
+            background: #ffffff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .user-type-btn.selected {
+            background: #ffff00;
+            border-color: #ff0000;
+        }
+
+        .farmer-btn { color: #008000; }
+        .buyer-btn { color: #0000ff; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>🌾 Agri-Direct</h1>
+        <p>Voice-Powered Farm Portal</p>
+
+        <form id="loginForm">
+            <div class="user-type-buttons">
+                <button type="button" class="user-type-btn farmer-btn" onclick="selectUserType('farmer')">
+                    👨‍🌾 FARMER
+                </button>
+                <button type="button" class="user-type-btn buyer-btn" onclick="selectUserType('buyer')">
+                    🛒 BUYER
+                </button>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" placeholder="your@email.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter password" required>
+            </div>
+
+            <button type="submit" class="big-button">
+                🚪 LOGIN / लॉगिन करें
+            </button>
+        </form>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="voice-hint">
+            💡 Tip: Use voice commands after login!<br>
+            💡 नोट: लॉगिन के बाद आवाज़ कमांड इस्तेमाल करें!
+        </div>
+    </div>
+
+    <script>
+        let selectedUserType = null;
+
+        function selectUserType(type) {
+            selectedUserType = type;
+            document.querySelectorAll('.user-type-btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!selectedUserType) {
+                showError('Please select Farmer or Buyer / कृपया किसान या खरीदार चुनें');
+                return;
+            }
+
+            if (!email || !password) {
+                showError('Please fill all fields / सभी फ़ील्ड भरें');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                        user_type: selectedUserType
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Redirect to main page
+                    window.location.href = '/';
+                } else {
+                    showError(data.message || 'Login failed / लॉगिन विफल');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('Network error. Please try again. / नेटवर्क एरर। फिर से कोशिश करें।');
+            }
+        });
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Voice hint on load
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                // Could add voice welcome here
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
+        
+        .success-message {
+            color: #27ae60;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+            text-align: center;
+        }
+        
+        .test-credentials {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 30px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .test-credentials h3 {
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .test-credentials p {
+            color: #666;
+            font-size: 12px;
+            margin: 5px 0;
+            text-align: left;
+        }
+        
+        .test-credentials strong {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>🌾AGRI-DIRECT</h1>
+        <p>Crop Trading Platform</p>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="userType">User Type</label>
+                <select id="userType" required>
+                    <option value="farmer">Farmer</option>
+                    <option value="buyer">Buyer/Dealer</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="Enter your email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+            </div>
+            
+            <button type="submit" class="btn-login">Login</button>
+            
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+        </form>
+        
+        <div class="test-credentials">
+            <h3>📝 Test Credentials</h3>
+            <p><strong>Farmers:</strong></p>
+            <p>farmer1@gmail.com / farmer1</p>
+            <p>farmer2@gmail.com / farmer2</p>
+            <p>farmer3@gmail.com / farmer3</p>
+            <p><strong>Buyers:</strong></p>
+            <p>buyer1@gmail.com / buyer1</p>
+            <p>buyer2@gmail.com / buyer2</p>
+            <p>buyer3@gmail.com / buyer3</p>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const userType = document.getElementById('userType').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            const errorMsg = document.getElementById('errorMessage');
+            const successMsg = document.getElementById('successMessage');
+            
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                        user_type: userType
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    successMsg.textContent = data.message;
+                    successMsg.style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1500);
+                } else {
+                    errorMsg.textContent = data.message;
+                    errorMsg.style.display = 'block';
+                }
+            } catch (error) {
+                errorMsg.textContent = 'An error occurred. Please try again.';
+                errorMsg.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
