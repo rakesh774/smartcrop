@@ -6,7 +6,7 @@ import numpy as np
 from pathlib import Path
 
 app = Flask(__name__, template_folder='templates')
-app.secret_key = 'dti_secret_key_2026'  # For session management
+app.secret_key = 'dti_secret_key_2026'  # For session 
 
 # Load users (farmers and buyers)
 def load_users():
