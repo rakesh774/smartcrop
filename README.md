@@ -43,5 +43,6 @@ We follow a "Safety-First" color logic and oversized touch targets:
 1. **Clone the Repo:**
    ```bash
    git clone https://github.com/rakesh774/smartcrop.git
-   cd agri-direct
+   cd smartcrop
+
 
