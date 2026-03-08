@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DTI - Login</title>
+    <title>DTI - Login & Register</title>
     <style>
         * {
             margin: 0;
@@ -18,9 +18,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
         
-        .login-container {
+        .auth-container {
             background: white;
             padding: 40px;
             border-radius: 10px;
@@ -29,18 +30,54 @@
             max-width: 400px;
         }
         
-        .login-container h1 {
+        .auth-container h1 {
             text-align: center;
             color: #333;
             margin-bottom: 10px;
             font-size: 28px;
         }
         
-        .login-container p {
+        .auth-container p {
             text-align: center;
             color: #666;
             margin-bottom: 30px;
             font-size: 14px;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: #f0f0f0;
+            border: 2px solid transparent;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .tab-btn:hover {
+            border-color: #667eea;
+        }
+        
+        .form-section {
+            display: none;
+        }
+        
+        .form-section.active {
+            display: block;
         }
         
         .form-group {
@@ -70,7 +107,7 @@
             border-color: #667eea;
         }
         
-        .btn-login {
+        .btn-submit {
             width: 100%;
             padding: 12px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -83,11 +120,11 @@
             transition: transform 0.2s;
         }
         
-        .btn-login:hover {
+        .btn-submit:hover {
             transform: translateY(-2px);
         }
         
-        .btn-login:active {
+        .btn-submit:active {
             transform: translateY(0);
         }
         
@@ -105,6 +142,39 @@
             margin-top: 10px;
             display: none;
             text-align: center;
+        }
+        
+        .user-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .user-type-option {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .user-type-option:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        
+        .user-type-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+            font-weight: 600;
+        }
+        
+        .user-type-option i {
+            display: block;
+            font-size: 24px;
+            margin-bottom: 8px;
         }
         
         .test-credentials {
@@ -134,36 +204,93 @@
     </style>
 </head>
 <body>
-    <div class="login-container">
+    <div class="auth-container">
         <h1>🌾AGRI-DIRECT</h1>
         <p>Crop Trading Platform</p>
         
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="userType">User Type</label>
-                <select id="userType" required>
-                    <option value="farmer">Farmer</option>
-                    <option value="buyer">Buyer/Dealer</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" placeholder="Enter your email" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" placeholder="Enter your password" required>
-            </div>
-            
-            <button type="submit" class="btn-login">Login</button>
-            
-            <div class="error-message" id="errorMessage"></div>
-            <div class="success-message" id="successMessage"></div>
-        </form>
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+            <button class="tab-btn" onclick="switchTab('register')">Register</button>
+        </div>
         
-        <div class="test-credentials">
+        <!-- LOGIN FORM -->
+        <div id="loginTab" class="form-section active">
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginUserType">User Type</label>
+                    <select id="loginUserType" required>
+                        <option value="">Select user type</option>
+                        <option value="farmer">Farmer</option>
+                        <option value="buyer">Buyer/Dealer</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginEmail">Email Address</label>
+                    <input type="email" id="loginEmail" placeholder="Enter your email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                </div>
+                
+                <button type="submit" class="btn-submit">Login</button>
+                
+                <div class="error-message" id="loginErrorMessage"></div>
+                <div class="success-message" id="loginSuccessMessage"></div>
+            </form>
+        </div>
+        
+        <!-- REGISTRATION FORM -->
+        <div id="registerTab" class="form-section">
+            <form id="registerForm">
+                <label style="display: block; margin-bottom: 15px; color: #333; font-weight: 500;">Select Account Type</label>
+                <div class="user-type-selector">
+                    <div class="user-type-option" onclick="selectUserType('farmer')">
+                        <div style="font-size: 30px;">👨‍🌾</div>
+                        <div>Farmer</div>
+                    </div>
+                    <div class="user-type-option" onclick="selectUserType('buyer')">
+                        <div style="font-size: 30px;">🏪</div>
+                        <div>Buyer</div>
+                    </div>
+                </div>
+                <input type="hidden" id="registerUserType" required>
+                
+                <div class="form-group">
+                    <label for="registerName">Full Name</label>
+                    <input type="text" id="registerName" placeholder="Enter your full name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerEmail">Email Address</label>
+                    <input type="email" id="registerEmail" placeholder="Enter your email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <input type="password" id="registerPassword" placeholder="Enter a strong password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerPhone">Phone Number</label>
+                    <input type="tel" id="registerPhone" placeholder="Enter your phone number" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerLocation">Location/City</label>
+                    <input type="text" id="registerLocation" placeholder="Enter your city/location" required>
+                </div>
+                
+                <button type="submit" class="btn-submit">Create Account</button>
+                
+                <div class="error-message" id="registerErrorMessage"></div>
+                <div class="success-message" id="registerSuccessMessage"></div>
+            </form>
+        </div>
+        
+        <div class="test-credentials" id="testCredentials">
             <h3>📝 Test Credentials</h3>
             <p><strong>Farmers:</strong></p>
             <p>farmer1@gmail.com / farmer1</p>
@@ -177,15 +304,55 @@
     </div>
     
     <script>
+        let selectedUserType = null;
+        
+        function switchTab(tab) {
+            // Hide all tabs
+            document.getElementById('loginTab').classList.remove('active');
+            document.getElementById('registerTab').classList.remove('active');
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Show selected tab
+            if (tab === 'login') {
+                document.getElementById('loginTab').classList.add('active');
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('testCredentials').style.display = 'block';
+            } else {
+                document.getElementById('registerTab').classList.add('active');
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('testCredentials').style.display = 'none';
+            }
+        }
+        
+        function selectUserType(type) {
+            selectedUserType = type;
+            document.getElementById('registerUserType').value = type;
+            
+            // Update visual selection
+            document.querySelectorAll('.user-type-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        }
+        
+        // Login Form Handler
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const userType = document.getElementById('userType').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            const userType = document.getElementById('loginUserType').value;
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
             
-            const errorMsg = document.getElementById('errorMessage');
-            const successMsg = document.getElementById('successMessage');
+            const errorMsg = document.getElementById('loginErrorMessage');
+            const successMsg = document.getElementById('loginSuccessMessage');
+            
+            if (!userType) {
+                errorMsg.textContent = 'Please select a user type';
+                errorMsg.style.display = 'block';
+                return;
+            }
             
             errorMsg.style.display = 'none';
             successMsg.style.display = 'none';
@@ -210,6 +377,68 @@
                     successMsg.style.display = 'block';
                     setTimeout(() => {
                         window.location.href = '/';
+                    }, 1500);
+                } else {
+                    errorMsg.textContent = data.message;
+                    errorMsg.style.display = 'block';
+                }
+            } catch (error) {
+                errorMsg.textContent = 'An error occurred. Please try again.';
+                errorMsg.style.display = 'block';
+            }
+        });
+        
+        // Register Form Handler
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const userType = document.getElementById('registerUserType').value;
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const phone = document.getElementById('registerPhone').value;
+            const location = document.getElementById('registerLocation').value;
+            
+            const errorMsg = document.getElementById('registerErrorMessage');
+            const successMsg = document.getElementById('registerSuccessMessage');
+            
+            if (!userType) {
+                errorMsg.textContent = 'Please select account type (Farmer or Buyer)';
+                errorMsg.style.display = 'block';
+                return;
+            }
+            
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        password: password,
+                        phone: phone,
+                        location: location,
+                        user_type: userType
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    successMsg.textContent = 'Account created successfully! Redirecting to login...';
+                    successMsg.style.display = 'block';
+                    setTimeout(() => {
+                        // Clear form
+                        document.getElementById('registerForm').reset();
+                        selectedUserType = null;
+                        document.querySelectorAll('.user-type-option').forEach(opt => opt.classList.remove('selected'));
+                        // Switch to login tab
+                        switchTab('login');
                     }, 1500);
                 } else {
                     errorMsg.textContent = data.message;

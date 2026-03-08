@@ -7,7 +7,9 @@
       "password": "farmer1",
       "phone": "919876543210",
       "location": "Kashmir",
-      "crops_grown": ["Saffron"]
+      "crops_grown": [
+        "Saffron"
+      ]
     },
     {
       "user_id": "farmer_002",
@@ -16,7 +18,9 @@
       "password": "farmer2",
       "phone": "918888888888",
       "location": "Kerala",
-      "crops_grown": ["Vanilla"]
+      "crops_grown": [
+        "Vanilla"
+      ]
     },
     {
       "user_id": "farmer_003",
@@ -25,7 +29,9 @@
       "password": "farmer3",
       "phone": "917777777777",
       "location": "Himalayas",
-      "crops_grown": ["Ginseng"]
+      "crops_grown": [
+        "Ginseng"
+      ]
     },
     {
       "user_id": "farmer_004",
@@ -34,7 +40,9 @@
       "password": "farmer4",
       "phone": "916666666666",
       "location": "Himachal",
-      "crops_grown": ["Truffles"]
+      "crops_grown": [
+        "Truffles"
+      ]
     },
     {
       "user_id": "farmer_005",
@@ -43,7 +51,18 @@
       "password": "farmer5",
       "phone": "915555555555",
       "location": "Nilgiris",
-      "crops_grown": ["Cardamom"]
+      "crops_grown": [
+        "Cardamom"
+      ]
+    },
+    {
+      "user_id": "farmer_006",
+      "name": "Rakesh Koppula",
+      "email": "rakeshkoppula2113p@gmail.com",
+      "password": "dexisfarmer",
+      "phone": "9912884321",
+      "location": "Dubai",
+      "crops_grown": []
     }
   ],
   "buyers": [

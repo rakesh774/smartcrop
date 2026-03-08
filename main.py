@@ -13,6 +13,11 @@ def load_users():
     with open(os.path.join('templates', 'users.json'), 'r') as f:
         return json.load(f)
 
+# Save users data
+def save_users(users):
+    with open(os.path.join('templates', 'users.json'), 'w') as f:
+        json.dump(users, f, indent=2)
+
 # Load crop data
 def load_crops():
     with open(os.path.join('templates', 'crop_data.json'), 'r') as f:
@@ -103,6 +108,62 @@ def login():
             }), 200
     
     return jsonify({'success': False, 'message': 'Invalid email or password'}), 401
+
+# Register Route
+@app.route('/api/register', methods=['POST'])
+def register():
+    data = request.json
+    name = data.get('name')
+    email = data.get('email')
+    password = data.get('password')
+    phone = data.get('phone')
+    location = data.get('location')
+    user_type = data.get('user_type')  # 'farmer' or 'buyer'
+    
+    # Validate input
+    if not all([name, email, password, phone, location, user_type]):
+        return jsonify({'success': False, 'message': 'All fields are required'}), 400
+    
+    if user_type not in ['farmer', 'buyer']:
+        return jsonify({'success': False, 'message': 'Invalid user type'}), 400
+    
+    users = load_users()
+    user_list = users.get(user_type + 's', [])  # 'farmers' or 'buyers'
+    
+    # Check if email already exists
+    for user in user_list:
+        if user['email'] == email:
+            return jsonify({'success': False, 'message': 'Email already registered'}), 409
+    
+    # Generate new user ID
+    existing_ids = [int(user['user_id'].split('_')[1]) for user in user_list if '_' in user['user_id']]
+    new_id_num = max(existing_ids) + 1 if existing_ids else 1
+    new_user_id = f"{user_type}_{new_id_num:03d}"
+    
+    # Create new user
+    new_user = {
+        'user_id': new_user_id,
+        'name': name,
+        'email': email,
+        'password': password,
+        'phone': phone,
+        'location': location
+    }
+    
+    # Add crops_grown for farmers
+    if user_type == 'farmer':
+        new_user['crops_grown'] = []
+    
+    # Add to user list and save
+    user_list.append(new_user)
+    users[user_type + 's'] = user_list
+    save_users(users)
+    
+    return jsonify({
+        'success': True,
+        'message': f'Account created successfully! You can now login.',
+        'user_id': new_user_id
+    }), 201
 
 # Logout Route
 @app.route('/api/logout', methods=['POST'])
