@@ -51,22 +51,50 @@ def save_subscriptions(subscriptions):
     with open(file_path, 'w') as f:
         json.dump(subscriptions, f, indent=2)
 
-# Simple linear regression for price prediction
-def predict_next_week(history):
-    """Predict prices for next 7 days using simple linear regression"""
-    x = np.arange(len(history))
-    y = np.array(history)
+def predict_next_5_months(history):
+    """Predict prices for the next 5 months using a combination of linear trend, seasonality, and noise based on 10 years (10 data points)"""
+    import math
+    import random
     
-    # Fit line
-    coeffs = np.polyfit(x, y, 1)
-    poly = np.poly1d(coeffs)
+    # We have 10 data points (representing 10 years). Let's extrapolate a monthly trend.
+    # To get a 5-month prediction, we need to interpolate the yearly data into monthly,
+    # or just treat the 'history' as the broad trend and predict the next 5 steps.
     
-    # Predict next 7 days
-    next_x = np.arange(len(history), len(history) + 7)
-    predictions = poly(next_x).tolist()
+    # We'll calculate the overall yearly slope first
+    x_yearly = np.arange(len(history))
+    y_yearly = np.array(history)
     
-    # Ensure no negative prices
-    predictions = [max(p, 0) for p in predictions]
+    # Fit line to get long-term trend
+    coeffs = np.polyfit(x_yearly, y_yearly, 1)
+    slope_yearly = coeffs[0]
+    intercept = coeffs[1]
+    
+    # Calculate average monthly slope
+    slope_monthly = slope_yearly / 12
+    
+    # Start our prediction from the last known price to ensure continuity
+    current_price = history[-1]
+    
+    predictions = []
+    
+    # Predict next 5 months
+    for month in range(1, 6):
+        # Base trend price for this upcoming month
+        trend_price = current_price + (slope_monthly * month)
+        
+        # Add some seasonality (sine wave based on the month of the year to simulate harvest seasons)
+        # Let's assume current month is April (month 4), so future months are 5, 6, 7, 8, 9
+        future_month_idx = datetime.now().month + month
+        seasonality = math.sin((future_month_idx / 12.0) * 2 * math.pi) * (current_price * 0.05) # +/- 5% fluctuation
+        
+        # Add noise (random fluctuation between -2% and +2%)
+        noise = current_price * random.uniform(-0.02, 0.02)
+        
+        predicted_val = trend_price + seasonality + noise
+        
+        # Ensure no negative prices
+        predictions.append(max(int(predicted_val), 0))
+        
     return predictions
 
 @app.route('/')
@@ -231,6 +259,65 @@ def get_marketplace_crops():
     
     return jsonify(all_items)
 
+@app.route('/api/analytics')
+def get_analytics():
+    """Returns analytics data for the dashboard"""
+    crops = load_crops()
+    
+    # 1. Price Trends (Average of all crops over 10 years)
+    trend_data = [0] * 10
+    crop_count = len(crops)
+    if crop_count > 0:
+        for crop_data in crops.values():
+            for i, price in enumerate(crop_data['history']):
+                if i < 10:
+                    trend_data[i] += price
+        trend_data = [round(total / crop_count) for total in trend_data]
+        
+    labels = [f"Year {i+1}" for i in range(10)]
+
+    # 2. Crop Market Share (count of listings per crop)
+    farmer_products = load_farmer_products()
+    distribution = {}
+    
+    # Add base crops
+    for crop_name in crops.keys():
+        name = crop_name.lower().replace(' ', '_')
+        distribution[name] = 1 # base listing
+        
+    # Add farmer crops
+    for products in farmer_products.values():
+        for product in products:
+            name = product['name'].lower().replace(' ', '_')
+            distribution[name] = distribution.get(name, 0) + 1
+            
+    # Top 5 for better chart visibility
+    dist_labels = list(distribution.keys())
+    dist_data = list(distribution.values())
+    if len(dist_labels) > 5:
+        sorted_dist = sorted(distribution.items(), key=lambda x: x[1], reverse=True)
+        dist_labels = [k.capitalize().replace('_', ' ') for k, v in sorted_dist[:5]]
+        dist_data = [v for k, v in sorted_dist[:5]]
+    else:
+        dist_labels = [k.capitalize().replace('_', ' ') for k in dist_labels]
+        
+    avg_price = round(sum([c['info']['price'] for c in crops.values()]) / max(1, len(crops)))
+    
+    return jsonify({
+        'trend': {
+            'labels': labels,
+            'data': trend_data
+        },
+        'distribution': {
+            'labels': dist_labels,
+            'data': dist_data
+        },
+        'stats': {
+            'avg_price': avg_price,
+            'total_crops': len(crops)
+        }
+    })
+
 @app.route('/api/predict/<crop_name>')
 def predict_price(crop_name):
     crops = load_crops()
@@ -238,11 +325,22 @@ def predict_price(crop_name):
         return jsonify({'error': 'Crop not found'}), 404
     
     history = crops[crop_name]['history']
-    predictions = predict_next_week(history)
+    predictions = predict_next_5_months(history)
     
-    # Generate dates for next 7 days
+    # Generate dates for next 5 months
+    import calendar
     today = datetime.now()
-    dates = [(today + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(1, 8)]
+    dates = []
+    for i in range(1, 6):
+        # Calculate future month and year
+        future_month = today.month + i
+        future_year = today.year
+        if future_month > 12:
+            future_month -= 12
+            future_year += 1
+            
+        month_name = calendar.month_abbr[future_month]
+        dates.append(f"{month_name} {future_year}")
     
     return jsonify({
         'crop': crop_name,
@@ -295,6 +393,8 @@ def create_order():
         'farmer_location': crop_data['info']['location'],
         'buyer_id': buyer_id,
         'buyer_name': buyer_name,
+        'delivery_method': data.get('delivery_method', 'seller_delivers'),
+        'payment_method': data.get('payment_method', 'cash'),
         'order_date': datetime.now().isoformat(),
         'status': 'Pending Confirmation'
     }
@@ -408,6 +508,8 @@ def add_farmer_product(farmer_id):
         'unit': data.get('unit', 'kg'),
         'description': data.get('description', ''),
         'quality': data.get('quality', 'Grade A'),
+        'delivery_option': data.get('delivery_option', 'seller_delivers'),
+        'payment_preference': data.get('payment_preference', 'cash'),
         'created_date': datetime.now().isoformat()
     }
     
@@ -431,6 +533,8 @@ def update_farmer_product(farmer_id, product_id):
                     'unit': data.get('unit', product['unit']),
                     'description': data.get('description', product['description']),
                     'quality': data.get('quality', product['quality']),
+                    'delivery_option': data.get('delivery_option', product.get('delivery_option', 'seller_delivers')),
+                    'payment_preference': data.get('payment_preference', product.get('payment_preference', 'cash')),
                     'updated_date': datetime.now().isoformat()
                 })
                 save_farmer_products(products)
