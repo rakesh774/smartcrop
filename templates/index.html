@@ -61,6 +61,8 @@
                     Dashboard</button>
                 <button onclick="showTab('analytics')"
                     class="px-4 py-2 rounded-full hover:bg-emerald-50 hover:text-emerald-700 transition">Analytics</button>
+                <button onclick="showTab('profile')" id="profileNavBtn" style="display: none;"
+                    class="px-4 py-2 rounded-full hover:bg-emerald-50 hover:text-emerald-700 transition">👤 Profile</button>
                 <!-- User Info (shown when logged in) -->
                 <div id="userInfo" style="display: none;" class="flex gap-2 items-center">
                     <div class="text-sm">
@@ -89,7 +91,8 @@
                     <span class="text-emerald-600 font-bold tracking-wider text-sm uppercase mb-2 block">Direct
                         Farm-to-Dealer</span>
                     <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 leading-tight">Fresh Produce,
-                        <br /><span class="text-emerald-600">Fair Prices.</span></h2>
+                        <br /><span class="text-emerald-600">Fair Prices.</span>
+                    </h2>
                     <p class="text-lg text-gray-500 mb-8 max-w-lg">Zero middlemen. Premium quality crops directly from
                         verified farmers, powered by authentic market analytics.</p>
 
@@ -275,7 +278,7 @@
                 <h2 class="text-4xl font-bold mb-4">🛍️ Your Orders</h2>
                 <p class="text-lg mb-6">Track your recent purchases and their processing status</p>
             </div>
-            
+
             <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
                 <h3 class="text-2xl font-bold text-gray-800 mb-6">📋 Recent Orders</h3>
                 <div id="orders-container" class="space-y-4">
@@ -459,7 +462,55 @@
                 </div>
             </div>
         </div>
+
+        <!-- Profile Tab -->
+        <div id="profile" class="tab-content">
+            <div class="bg-gradient-to-r from-blue-600 to-cyan-600 text-white p-8 rounded-2xl mb-8">
+                <h2 class="text-4xl font-bold mb-4">👤 My Profile</h2>
+                <p class="text-lg">Manage your account and security settings</p>
+            </div>
+            
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6">Account Details</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-lg">
+                    <div><span class="font-bold text-gray-500">Name:</span> <span id="profName">-</span></div>
+                    <div><span class="font-bold text-gray-500">Email:</span> <span id="profEmail">-</span></div>
+                    <div><span class="font-bold text-gray-500">Phone:</span> <span id="profPhone">-</span></div>
+                    <div><span class="font-bold text-gray-500">Location:</span> <span id="profLocation">-</span></div>
+                    <div><span class="font-bold text-gray-500">Account Type:</span> <span id="profType" class="capitalize">-</span></div>
+                </div>
+                
+                <hr class="my-8">
+                
+                <h3 class="text-2xl font-bold text-gray-800 mb-6">Security & Authentication</h3>
+                <div class="flex items-center justify-between p-6 bg-gray-50 rounded-xl border">
+                    <div>
+                        <h4 class="text-xl font-bold">Facial Biometrics</h4>
+                        <p class="text-gray-600" id="profFaceStatus">Checking status...</p>
+                    </div>
+                    <button onclick="openProfileFaceModal()" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded-lg shadow transition">
+                        Update Face ID 📷
+                    </button>
+                </div>
+            </div>
+        </div>
     </main>
+
+    <!-- Profile Face Capture Modal -->
+    <div id="profileFaceModal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Face Biometrics</h3>
+            <p class="text-gray-600 mb-4">Center your face in the camera frame.</p>
+            <video id="profileWebcamVideo" autoplay playsinline class="w-full rounded-xl bg-black mb-4"></video>
+            <canvas id="profileFaceCanvas" style="display:none;"></canvas>
+            
+            <div class="flex gap-3">
+                <button onclick="closeProfileFaceModal()" class="flex-1 bg-gray-300 text-gray-800 font-bold py-2 rounded-lg hover:bg-gray-400">Cancel</button>
+                <button onclick="captureProfileFace()" class="flex-1 bg-green-600 text-white font-bold py-2 rounded-lg hover:bg-green-500">Snap & Save</button>
+            </div>
+            <div id="profileFaceMsg" class="mt-4 text-sm font-bold hidden"></div>
+        </div>
+    </div>
 
     <!-- Auth Modal -->
     <div id="authModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -1052,7 +1103,7 @@
             try {
                 const res = await fetch('/api/analytics');
                 const data = await res.json();
-                
+
                 // Trend Chart
                 const ctx1 = document.getElementById('trendChart');
                 if (ctx1) {
@@ -1103,7 +1154,7 @@
                         }
                     });
                 }
-                
+
                 // Update global platform stats in the UI
                 const firstStatsBlock = document.querySelectorAll('#marketplace .grid .bg-white.rounded-lg .text-3xl');
                 if (firstStatsBlock.length >= 2) {
@@ -1618,8 +1669,25 @@
                     // User is logged in
                     document.getElementById('userInfo').style.display = 'flex';
                     document.getElementById('loginBtn').style.display = 'none';
+                    document.getElementById('profileNavBtn').style.display = 'block';
                     document.getElementById('userName').textContent = user.name;
                     document.getElementById('userType').textContent = user.user_type.charAt(0).toUpperCase() + user.user_type.slice(1);
+                    
+                    // Populate Profile View
+                    document.getElementById('profName').innerText = user.name;
+                    document.getElementById('profEmail').innerText = user.email;
+                    document.getElementById('profType').innerText = user.user_type;
+                    document.getElementById('profPhone').innerText = user.phone || 'N/A';
+                    document.getElementById('profLocation').innerText = user.location || 'N/A';
+                    
+                    const statusText = document.getElementById('profFaceStatus');
+                    if (user.has_face) {
+                        statusText.innerText = '✅ Active - Ready for Face Login';
+                        statusText.className = 'text-green-600 font-bold';
+                    } else {
+                        statusText.innerText = '❌ Not configured yet';
+                        statusText.className = 'text-red-500 font-bold';
+                    }
 
                     // Setup dashboard button based on user type
                     if (dashboardNavBtn) {
@@ -1636,6 +1704,7 @@
                     // User is not logged in
                     document.getElementById('userInfo').style.display = 'none';
                     document.getElementById('loginBtn').style.display = 'block';
+                    document.getElementById('profileNavBtn').style.display = 'none';
                     if (dashboardNavBtn) {
                         dashboardNavBtn.innerHTML = '👨‍🌾 Farmer Dashboard';
                         dashboardNavBtn.setAttribute('onclick', "showTab('farmer')");
@@ -1645,6 +1714,7 @@
                 console.error('Error checking user login:', error);
                 document.getElementById('userInfo').style.display = 'none';
                 document.getElementById('loginBtn').style.display = 'block';
+                document.getElementById('profileNavBtn').style.display = 'none';
                 const dashboardNavBtn = document.getElementById('dashboardNavBtn');
                 if (dashboardNavBtn) {
                     dashboardNavBtn.innerHTML = '👨‍🌾 Farmer Dashboard';
@@ -1667,7 +1737,156 @@
                 alert('Error logging out: ' + error);
             }
         }
+
+        // --- Profile Face Auth ---
+        let profileStream = null;
+
+        async function openProfileFaceModal() {
+            document.getElementById('profileFaceModal').classList.remove('hidden');
+            const video = document.getElementById('profileWebcamVideo');
+            const msg = document.getElementById('profileFaceMsg');
+            msg.classList.add('hidden');
+            msg.innerHTML = '';
+            
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                try {
+                    profileStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    video.srcObject = profileStream;
+                } catch (err) {
+                    alert("Camera error: " + err);
+                }
+            }
+        }
+
+        function closeProfileFaceModal() {
+            document.getElementById('profileFaceModal').classList.add('hidden');
+            if (profileStream) {
+                profileStream.getTracks().forEach(track => track.stop());
+                profileStream = null;
+            }
+        }
+
+        async function captureProfileFace() {
+            if (!profileStream) return;
+            const video = document.getElementById('profileWebcamVideo');
+            const canvas = document.getElementById('profileFaceCanvas');
+            const msg = document.getElementById('profileFaceMsg');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            
+            msg.classList.remove('hidden');
+            msg.className = 'mt-4 text-sm font-bold text-blue-600';
+            msg.textContent = 'Saving facial id...';
+
+            try {
+                const response = await fetch('/api/update-face', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ facial_data: dataUrl })
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    msg.className = 'mt-4 text-sm font-bold text-green-600';
+                    msg.textContent = '✅ ' + data.message;
+                    checkUserLogin(); // Refresh face status
+                    setTimeout(() => closeProfileFaceModal(), 1500);
+                } else {
+                    msg.className = 'mt-4 text-sm font-bold text-red-600';
+                    msg.textContent = '❌ ' + data.message;
+                }
+            } catch (err) {
+                msg.className = 'mt-4 text-sm font-bold text-red-600';
+                msg.textContent = '❌ Connection error.';
+            }
+        }
+
+        // --- Voice Assistant ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const vBtn = document.getElementById('voiceAssistantBtn');
+            const vStatus = document.getElementById('voiceStatus');
+
+            if (!vBtn || !vStatus) return;
+
+            // Use standard or webkit vendor prefixed SpeechRecognition
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                const recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'en-IN';
+
+                vBtn.addEventListener('click', () => {
+                    recognition.start();
+                    vStatus.classList.remove('hidden');
+                    vStatus.textContent = 'Listening...';
+                    vBtn.classList.add('animate-pulse', 'bg-red-500');
+                    vBtn.classList.remove('bg-emerald-600');
+                });
+
+                recognition.onresult = async (event) => {
+                    const command = event.results[0][0].transcript;
+                    vStatus.textContent = 'Processing: ' + command;
+                    vBtn.classList.remove('animate-pulse', 'bg-red-500');
+                    vBtn.classList.add('bg-emerald-600');
+
+                    try {
+                        const response = await fetch('/api/voice-command', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ command: command })
+                        });
+                        const data = await response.json();
+
+                        vStatus.textContent = data.reply;
+                        setTimeout(() => vStatus.classList.add('hidden'), 5000);
+
+                        if (data.reply) {
+                            const utterance = new SpeechSynthesisUtterance(data.reply);
+                            window.speechSynthesis.speak(utterance);
+                        }
+
+                        // Trigger UI refresh if data updated
+                        loadMarketplaceCrops();
+                        if (document.getElementById('farmer') && document.getElementById('farmer').classList.contains('active')) {
+                            if (typeof loadFarmerStats === 'function') loadFarmerStats();
+                        }
+                    } catch (err) {
+                        console.error('Voice Command Error', err);
+                        vStatus.textContent = 'Error processing command.';
+                        setTimeout(() => vStatus.classList.add('hidden'), 3000);
+                    }
+                };
+
+                recognition.onerror = (event) => {
+                    console.error(event.error);
+                    vStatus.textContent = 'Could not understand, please try again.';
+                    vBtn.classList.remove('animate-pulse', 'bg-red-500');
+                    vBtn.classList.add('bg-emerald-600');
+                    setTimeout(() => vStatus.classList.add('hidden'), 3000);
+                };
+            } else {
+                vBtn.style.display = 'none'; // Hide if unsupported
+                console.warn('SpeechRecognition API not supported in this browser.');
+            }
+        });
     </script>
+
+    <!-- Voice Assistant Floating Button -->
+    <div class="fixed bottom-8 right-8 flex flex-col items-end z-[100]">
+        <div id="voiceStatus"
+            class="hidden mb-4 bg-gray-800 text-white px-4 py-2 rounded-lg text-sm shadow-lg max-w-xs transition-all">
+            Listening...
+        </div>
+        <button id="voiceAssistantBtn"
+            class="bg-emerald-600 hover:bg-emerald-500 text-white rounded-full w-16 h-16 flex items-center justify-center text-3xl shadow-[0_10px_25px_rgba(0,0,0,0.2)] focus:outline-none transition-all">
+            🎙️
+        </button>
+    </div>
 </body>
 
 </html>

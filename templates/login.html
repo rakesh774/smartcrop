@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -20,7 +21,7 @@
             justify-content: center;
             padding: 20px;
         }
-        
+
         .auth-container {
             background: white;
             padding: 40px;
@@ -29,27 +30,27 @@
             width: 100%;
             max-width: 400px;
         }
-        
+
         .auth-container h1 {
             text-align: center;
             color: #333;
             margin-bottom: 10px;
             font-size: 28px;
         }
-        
+
         .auth-container p {
             text-align: center;
             color: #666;
             margin-bottom: 30px;
             font-size: 14px;
         }
-        
+
         .tab-buttons {
             display: flex;
             gap: 10px;
             margin-bottom: 30px;
         }
-        
+
         .tab-btn {
             flex: 1;
             padding: 12px;
@@ -61,36 +62,36 @@
             color: #666;
             transition: all 0.3s;
         }
-        
+
         .tab-btn.active {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border-color: #667eea;
         }
-        
+
         .tab-btn:hover {
             border-color: #667eea;
         }
-        
+
         .form-section {
             display: none;
         }
-        
+
         .form-section.active {
             display: block;
         }
-        
+
         .form-group {
             margin-bottom: 20px;
         }
-        
+
         .form-group label {
             display: block;
             margin-bottom: 8px;
             color: #333;
             font-weight: 500;
         }
-        
+
         .form-group input,
         .form-group select {
             width: 100%;
@@ -100,13 +101,13 @@
             font-size: 14px;
             transition: border-color 0.3s;
         }
-        
+
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
             border-color: #667eea;
         }
-        
+
         .btn-submit {
             width: 100%;
             padding: 12px;
@@ -119,15 +120,15 @@
             cursor: pointer;
             transition: transform 0.2s;
         }
-        
+
         .btn-submit:hover {
             transform: translateY(-2px);
         }
-        
+
         .btn-submit:active {
             transform: translateY(0);
         }
-        
+
         .error-message {
             color: #e74c3c;
             font-size: 14px;
@@ -135,7 +136,7 @@
             display: none;
             text-align: center;
         }
-        
+
         .success-message {
             color: #27ae60;
             font-size: 14px;
@@ -143,13 +144,13 @@
             display: none;
             text-align: center;
         }
-        
+
         .user-type-selector {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
         }
-        
+
         .user-type-option {
             flex: 1;
             padding: 15px;
@@ -159,24 +160,24 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
+
         .user-type-option:hover {
             border-color: #667eea;
             background: #f8f9ff;
         }
-        
+
         .user-type-option.selected {
             border-color: #667eea;
             background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
             font-weight: 600;
         }
-        
+
         .user-type-option i {
             display: block;
             font-size: 24px;
             margin-bottom: 8px;
         }
-        
+
         .test-credentials {
             background: #f8f9fa;
             padding: 15px;
@@ -184,35 +185,86 @@
             margin-top: 30px;
             border-left: 4px solid #667eea;
         }
-        
+
         .test-credentials h3 {
             color: #333;
             font-size: 14px;
             margin-bottom: 10px;
         }
-        
+
         .test-credentials p {
             color: #666;
             font-size: 12px;
             margin: 5px 0;
             text-align: left;
         }
-        
+
         .test-credentials strong {
             color: #333;
         }
+
+        .face-capture-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .face-capture-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        #webcamVideo {
+            width: 100%;
+            border-radius: 10px;
+            background: #000;
+            margin-bottom: 10px;
+        }
+
+        .btn-face {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .btn-face:hover {
+            opacity: 0.9;
+        }
+
+        .btn-face-alt {
+            background: #e67e22;
+            margin-top: 0px;
+        }
     </style>
 </head>
+
 <body>
     <div class="auth-container">
         <h1>🌾AGRI-DIRECT</h1>
         <p>Crop Trading Platform</p>
-        
+
         <div class="tab-buttons">
             <button class="tab-btn active" onclick="switchTab('login')">Login</button>
             <button class="tab-btn" onclick="switchTab('register')">Register</button>
         </div>
-        
+
         <!-- LOGIN FORM -->
         <div id="loginTab" class="form-section active">
             <form id="loginForm">
@@ -224,28 +276,32 @@
                         <option value="buyer">Buyer/Dealer</option>
                     </select>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="loginEmail">Email Address</label>
                     <input type="email" id="loginEmail" placeholder="Enter your email" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="loginPassword">Password</label>
                     <input type="password" id="loginPassword" placeholder="Enter your password" required>
                 </div>
-                
+
                 <button type="submit" class="btn-submit">Login</button>
-                
+                <div style="text-align: center; margin: 15px 0; color: #666; font-size: 12px; font-weight: bold;">- OR -
+                </div>
+                <button type="button" class="btn-submit btn-face-alt" onclick="openFaceLogin()">📷 Face Login</button>
+
                 <div class="error-message" id="loginErrorMessage"></div>
                 <div class="success-message" id="loginSuccessMessage"></div>
             </form>
         </div>
-        
+
         <!-- REGISTRATION FORM -->
         <div id="registerTab" class="form-section">
             <form id="registerForm">
-                <label style="display: block; margin-bottom: 15px; color: #333; font-weight: 500;">Select Account Type</label>
+                <label style="display: block; margin-bottom: 15px; color: #333; font-weight: 500;">Select Account
+                    Type</label>
                 <div class="user-type-selector">
                     <div class="user-type-option" onclick="selectUserType('farmer')">
                         <div style="font-size: 30px;">👨‍🌾</div>
@@ -257,39 +313,46 @@
                     </div>
                 </div>
                 <input type="hidden" id="registerUserType" required>
-                
+
                 <div class="form-group">
                     <label for="registerName">Full Name</label>
                     <input type="text" id="registerName" placeholder="Enter your full name" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="registerEmail">Email Address</label>
                     <input type="email" id="registerEmail" placeholder="Enter your email" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="registerPassword">Password</label>
                     <input type="password" id="registerPassword" placeholder="Enter a strong password" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="registerPhone">Phone Number</label>
                     <input type="tel" id="registerPhone" placeholder="Enter your phone number" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="registerLocation">Location/City</label>
                     <input type="text" id="registerLocation" placeholder="Enter your city/location" required>
                 </div>
-                
+
+                <div class="form-group">
+                    <label>Facial Biometrics (Optional)</label>
+                    <button type="button" class="btn-submit btn-face" onclick="openFaceRegister()" id="regFaceBtn">📷
+                        Register Face Data</button>
+                    <input type="hidden" id="registerFacialData">
+                </div>
+
                 <button type="submit" class="btn-submit">Create Account</button>
-                
+
                 <div class="error-message" id="registerErrorMessage"></div>
                 <div class="success-message" id="registerSuccessMessage"></div>
             </form>
         </div>
-        
+
         <div class="test-credentials" id="testCredentials">
             <h3>📝 Test Credentials</h3>
             <p><strong>Farmers:</strong></p>
@@ -302,18 +365,32 @@
             <p>buyer3@gmail.com / buyer3</p>
         </div>
     </div>
-    
+
+    <!-- Face Capture Modal -->
+    <div class="face-capture-modal" id="faceModal">
+        <div class="face-capture-content">
+            <h3 id="faceModalTitle">Face Biometrics</h3>
+            <p style="margin: 10px 0; font-size: 14px; color: #666;">Look straight into the camera and ensure good
+                lighting.</p>
+            <video id="webcamVideo" autoplay playsinline></video>
+            <canvas id="faceCanvas" style="display:none;"></canvas>
+
+            <button class="btn-face" id="captureBtn" onclick="captureFace()">Snap & Save</button>
+            <button class="btn-face" style="background: #e74c3c;" onclick="closeFaceModal()">Cancel</button>
+        </div>
+    </div>
+
     <script>
         let selectedUserType = null;
-        
+
         function switchTab(tab) {
             // Hide all tabs
             document.getElementById('loginTab').classList.remove('active');
             document.getElementById('registerTab').classList.remove('active');
-            
+
             // Remove active class from all buttons
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
+
             // Show selected tab
             if (tab === 'login') {
                 document.getElementById('loginTab').classList.add('active');
@@ -325,38 +402,38 @@
                 document.getElementById('testCredentials').style.display = 'none';
             }
         }
-        
+
         function selectUserType(type) {
             selectedUserType = type;
             document.getElementById('registerUserType').value = type;
-            
+
             // Update visual selection
             document.querySelectorAll('.user-type-option').forEach(option => {
                 option.classList.remove('selected');
             });
             event.currentTarget.classList.add('selected');
         }
-        
+
         // Login Form Handler
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const userType = document.getElementById('loginUserType').value;
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
-            
+
             const errorMsg = document.getElementById('loginErrorMessage');
             const successMsg = document.getElementById('loginSuccessMessage');
-            
+
             if (!userType) {
                 errorMsg.textContent = 'Please select a user type';
                 errorMsg.style.display = 'block';
                 return;
             }
-            
+
             errorMsg.style.display = 'none';
             successMsg.style.display = 'none';
-            
+
             try {
                 const response = await fetch('/api/login', {
                     method: 'POST',
@@ -369,9 +446,9 @@
                         user_type: userType
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     successMsg.textContent = data.message;
                     successMsg.style.display = 'block';
@@ -387,30 +464,31 @@
                 errorMsg.style.display = 'block';
             }
         });
-        
+
         // Register Form Handler
-        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        document.getElementById('registerForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const userType = document.getElementById('registerUserType').value;
             const name = document.getElementById('registerName').value;
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
             const phone = document.getElementById('registerPhone').value;
             const location = document.getElementById('registerLocation').value;
-            
+            const facialData = document.getElementById('registerFacialData').value;
+
             const errorMsg = document.getElementById('registerErrorMessage');
             const successMsg = document.getElementById('registerSuccessMessage');
-            
+
             if (!userType) {
                 errorMsg.textContent = 'Please select account type (Farmer or Buyer)';
                 errorMsg.style.display = 'block';
                 return;
             }
-            
+
             errorMsg.style.display = 'none';
             successMsg.style.display = 'none';
-            
+
             try {
                 const response = await fetch('/api/register', {
                     method: 'POST',
@@ -423,12 +501,13 @@
                         password: password,
                         phone: phone,
                         location: location,
-                        user_type: userType
+                        user_type: userType,
+                        facial_data: facialData
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     successMsg.textContent = 'Account created successfully! Redirecting to login...';
                     successMsg.style.display = 'block';
@@ -449,6 +528,105 @@
                 errorMsg.style.display = 'block';
             }
         });
+
+        // Face Logic Variables
+        let streaming = false;
+        let faceMode = ''; // 'login' or 'register'
+
+        async function openWebcam() {
+            const video = document.getElementById('webcamVideo');
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    video.srcObject = stream;
+                    streaming = true;
+                } catch (err) {
+                    alert("Camera error: " + err);
+                }
+            }
+        }
+
+        function closeFaceModal() {
+            document.getElementById('faceModal').style.display = 'none';
+            const video = document.getElementById('webcamVideo');
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+            }
+            streaming = false;
+        }
+
+        function openFaceRegister() {
+            faceMode = 'register';
+            document.getElementById('faceModalTitle').innerText = 'Register Face Data';
+            document.getElementById('captureBtn').innerText = 'Snap & Save';
+            document.getElementById('faceModal').style.display = 'flex';
+            openWebcam();
+        }
+
+        function openFaceLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const userType = document.getElementById('loginUserType').value;
+            if (!email || !userType) {
+                alert("Please enter User Type and Email to use Face Login. This tells us whose face to verify!");
+                return;
+            }
+            faceMode = 'login';
+            document.getElementById('faceModalTitle').innerText = 'Face Authentication';
+            document.getElementById('captureBtn').innerText = 'Verify Face';
+            document.getElementById('faceModal').style.display = 'flex';
+            openWebcam();
+        }
+
+        async function captureFace() {
+            if (!streaming) return;
+            const video = document.getElementById('webcamVideo');
+            const canvas = document.getElementById('faceCanvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+            closeFaceModal();
+
+            if (faceMode === 'register') {
+                document.getElementById('registerFacialData').value = dataUrl;
+                document.getElementById('regFaceBtn').innerText = '✅ Face Registered';
+                document.getElementById('regFaceBtn').style.background = '#27ae60';
+            } else if (faceMode === 'login') {
+                performFaceLogin(dataUrl);
+            }
+        }
+
+        async function performFaceLogin(faceImage) {
+            const email = document.getElementById('loginEmail').value;
+            const userType = document.getElementById('loginUserType').value;
+            const errorMsg = document.getElementById('loginErrorMessage');
+            const successMsg = document.getElementById('loginSuccessMessage');
+
+            try {
+                const response = await fetch('/api/face-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, user_type: userType, face_image: faceImage })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    successMsg.textContent = data.message;
+                    successMsg.style.display = 'block';
+                    errorMsg.style.display = 'none';
+                    setTimeout(() => window.location.href = '/', 1500);
+                } else {
+                    errorMsg.textContent = data.message;
+                    errorMsg.style.display = 'block';
+                }
+            } catch (err) {
+                errorMsg.textContent = 'Face login error. Try again.';
+                errorMsg.style.display = 'block';
+            }
+        }
     </script>
 </body>
+
 </html>

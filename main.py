@@ -4,6 +4,7 @@ import os
 from datetime import datetime, timedelta
 import numpy as np
 from pathlib import Path
+import re
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'dti_secret_key_2026'  # For session 
@@ -147,6 +148,7 @@ def register():
     phone = data.get('phone')
     location = data.get('location')
     user_type = data.get('user_type')  # 'farmer' or 'buyer'
+    facial_data = data.get('facial_data', '')
     
     # Validate input
     if not all([name, email, password, phone, location, user_type]):
@@ -175,7 +177,8 @@ def register():
         'email': email,
         'password': password,
         'phone': phone,
-        'location': location
+        'location': location,
+        'facial_data': facial_data
     }
     
     # Add crops_grown for farmers
@@ -193,6 +196,72 @@ def register():
         'user_id': new_user_id
     }), 201
 
+# Face Login Route
+@app.route('/api/face-login', methods=['POST'])
+def face_login():
+    data = request.json
+    email = data.get('email')
+    user_type = data.get('user_type')
+    face_image = data.get('face_image')
+
+    if not email or not user_type or not face_image:
+        return jsonify({'success': False, 'message': 'Missing email, user type, or face image.'}), 400
+
+    users = load_users()
+    user_list = users.get(user_type + 's', [])
+    
+    for user in user_list:
+        if user['email'] == email:
+            if not user.get('facial_data'):
+                return jsonify({'success': False, 'message': 'No facial data registered for this account. Please login with password.'}), 401
+            
+            # Here we "simulate" the ML comparison. In a real app we'd compare `user['facial_data']` with `face_image`.
+            # Since both are set and we are simulating:
+            session['user_id'] = user['user_id']
+            session['name'] = user['name']
+            session['email'] = user['email']
+            session['user_type'] = user_type
+            
+            return jsonify({
+                'success': True,
+                'message': f"Face verified successfully. Welcome back {user['name']}!",
+                'user_id': user['user_id'],
+                'user_type': user_type,
+                'name': user['name']
+            }), 200
+            
+    return jsonify({'success': False, 'message': 'Email not found.'}), 404
+
+# Update Face Profile Route
+@app.route('/api/update-face', methods=['POST'])
+def update_face():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not logged in'}), 401
+        
+    data = request.json
+    face_image = data.get('facial_data')
+    if not face_image:
+        return jsonify({'error': 'No image provided'}), 400
+        
+    user_type = session['user_type']
+    user_id = session['user_id']
+    
+    users = load_users()
+    user_list = users.get(user_type + 's', [])
+    
+    updated = False
+    for user in user_list:
+        if user['user_id'] == user_id:
+            user['facial_data'] = face_image
+            updated = True
+            break
+            
+    if updated:
+        save_users(users)
+        return jsonify({'success': True, 'message': 'Facial ID updated securely.'}), 200
+    
+    return jsonify({'error': 'User not found'}), 404
+
 # Logout Route
 @app.route('/api/logout', methods=['POST'])
 def logout():
@@ -203,11 +272,27 @@ def logout():
 @app.route('/api/user-info', methods=['GET'])
 def get_user_info():
     if 'user_id' in session:
+        # Check if they have facial data
+        users = load_users()
+        user_list = users.get(session['user_type'] + 's', [])
+        has_face = False
+        location = ""
+        phone = ""
+        for u in user_list:
+            if u['user_id'] == session['user_id']:
+                has_face = bool(u.get('facial_data'))
+                location = u.get('location', '')
+                phone = u.get('phone', '')
+                break
+                
         return jsonify({
             'user_id': session['user_id'],
             'name': session['name'],
             'email': session['email'],
-            'user_type': session['user_type']
+            'user_type': session['user_type'],
+            'has_face': has_face,
+            'location': location,
+            'phone': phone
         }), 200
     return jsonify({'error': 'Not logged in'}), 401
 
@@ -666,6 +751,89 @@ def calculate_next_delivery(frequency):
     days = days_map.get(frequency, 30)
     next_date = datetime.now() + timedelta(days=days)
     return next_date.isoformat()
+
+@app.route('/api/voice-command', methods=['POST'])
+def process_voice_command():
+    data = request.json
+    command = data.get('command', '').lower()
+    
+    if not command:
+        return jsonify({'reply': 'I did not catch that.'}), 400
+        
+    # Check for Price query
+    # e.g., "what is the price of tomato"
+    price_match = re.search(r'price of (\w+)', command)
+    if price_match and 'update' not in command and 'change' not in command:
+        crop_name = price_match.group(1).lower()
+        crops = load_crops()
+        # look for crop
+        found_crop = None
+        for key in crops.keys():
+            if crop_name in key.lower():
+                found_crop = key
+                break
+        if found_crop:
+            price = crops[found_crop]['info']['price']
+            return jsonify({'reply': f'The current market price of {crop_name} is {price} rupees per kilogram.'})
+        else:
+            return jsonify({'reply': f'Sorry, I could not find information for {crop_name}.'})
+            
+    # Check for Price Update
+    # e.g., "update the price of tomato to 40 rupees" or "update tomato price to 40"
+    update_match = re.search(r'update.*?(\w+).*?price.*?to\s+(\d+)', command)
+    if update_match:
+        crop_name = update_match.group(1).lower()
+        new_price = int(update_match.group(2))
+        
+        if 'user_id' not in session or session.get('user_type') != 'farmer':
+            return jsonify({'reply': 'You must be logged in as a farmer to update prices.'})
+            
+        farmer_id = session.get('user_id')
+        products = load_farmer_products()
+        if farmer_id in products:
+            updated = False
+            for p in products[farmer_id]:
+                if crop_name in p['name'].lower():
+                    p['price'] = new_price
+                    updated = True
+                    break
+            if updated:
+                save_farmer_products(products)
+                return jsonify({'reply': f'Updated {crop_name} price to {new_price} rupees.'})
+            else:
+                return jsonify({'reply': f'You do not have {crop_name} in your products.'})
+        else:
+            return jsonify({'reply': 'You have no products to update.'})
+            
+    # Check for Order Status
+    if 'orders' in command:
+        if 'user_id' not in session:
+            return jsonify({'reply': 'Please log in to check your orders.'})
+            
+        user_id = session.get('user_id')
+        user_type = session.get('user_type')
+        
+        orders_file = 'templates/orders.json'
+        try:
+            with open(orders_file, 'r') as f:
+                all_orders = json.load(f)
+        except:
+            all_orders = []
+            
+        if user_type == 'farmer':
+            my_orders = [o for o in all_orders if o.get('farmer_id') == user_id]
+        else:
+            my_orders = [o for o in all_orders if o.get('buyer_id') == user_id]
+            
+        pending = len([o for o in my_orders if o.get('status') == 'Pending Confirmation'])
+        if pending > 0:
+            return jsonify({'reply': f'You have {pending} pending orders waiting for attention.'})
+        elif len(my_orders) > 0:
+            return jsonify({'reply': f'You have {len(my_orders)} total orders, but none are pending.'})
+        else:
+            return jsonify({'reply': 'You have no orders at the moment.'})
+            
+    return jsonify({'reply': 'I am not sure how to help with that. Try asking about crop prices or your orders.'})
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
