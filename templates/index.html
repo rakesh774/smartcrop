@@ -62,7 +62,8 @@
                 <button onclick="showTab('analytics')"
                     class="px-4 py-2 rounded-full hover:bg-emerald-50 hover:text-emerald-700 transition">Analytics</button>
                 <button onclick="showTab('profile')" id="profileNavBtn" style="display: none;"
-                    class="px-4 py-2 rounded-full hover:bg-emerald-50 hover:text-emerald-700 transition">👤 Profile</button>
+                    class="px-4 py-2 rounded-full hover:bg-emerald-50 hover:text-emerald-700 transition">👤
+                    Profile</button>
                 <!-- User Info (shown when logged in) -->
                 <div id="userInfo" style="display: none;" class="flex gap-2 items-center">
                     <div class="text-sm">
@@ -469,7 +470,7 @@
                 <h2 class="text-4xl font-bold mb-4">👤 My Profile</h2>
                 <p class="text-lg">Manage your account and security settings</p>
             </div>
-            
+
             <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
                 <h3 class="text-2xl font-bold text-gray-800 mb-6">Account Details</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-lg">
@@ -477,18 +478,20 @@
                     <div><span class="font-bold text-gray-500">Email:</span> <span id="profEmail">-</span></div>
                     <div><span class="font-bold text-gray-500">Phone:</span> <span id="profPhone">-</span></div>
                     <div><span class="font-bold text-gray-500">Location:</span> <span id="profLocation">-</span></div>
-                    <div><span class="font-bold text-gray-500">Account Type:</span> <span id="profType" class="capitalize">-</span></div>
+                    <div><span class="font-bold text-gray-500">Account Type:</span> <span id="profType"
+                            class="capitalize">-</span></div>
                 </div>
-                
+
                 <hr class="my-8">
-                
+
                 <h3 class="text-2xl font-bold text-gray-800 mb-6">Security & Authentication</h3>
                 <div class="flex items-center justify-between p-6 bg-gray-50 rounded-xl border">
                     <div>
                         <h4 class="text-xl font-bold">Facial Biometrics</h4>
                         <p class="text-gray-600" id="profFaceStatus">Checking status...</p>
                     </div>
-                    <button onclick="openProfileFaceModal()" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded-lg shadow transition">
+                    <button onclick="openProfileFaceModal()"
+                        class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded-lg shadow transition">
                         Update Face ID 📷
                     </button>
                 </div>
@@ -497,16 +500,20 @@
     </main>
 
     <!-- Profile Face Capture Modal -->
-    <div id="profileFaceModal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+    <div id="profileFaceModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
             <h3 class="text-2xl font-bold text-gray-800 mb-4">Face Biometrics</h3>
             <p class="text-gray-600 mb-4">Center your face in the camera frame.</p>
             <video id="profileWebcamVideo" autoplay playsinline class="w-full rounded-xl bg-black mb-4"></video>
             <canvas id="profileFaceCanvas" style="display:none;"></canvas>
-            
+
             <div class="flex gap-3">
-                <button onclick="closeProfileFaceModal()" class="flex-1 bg-gray-300 text-gray-800 font-bold py-2 rounded-lg hover:bg-gray-400">Cancel</button>
-                <button onclick="captureProfileFace()" class="flex-1 bg-green-600 text-white font-bold py-2 rounded-lg hover:bg-green-500">Snap & Save</button>
+                <button onclick="closeProfileFaceModal()"
+                    class="flex-1 bg-gray-300 text-gray-800 font-bold py-2 rounded-lg hover:bg-gray-400">Cancel</button>
+                <button onclick="captureProfileFace()"
+                    class="flex-1 bg-green-600 text-white font-bold py-2 rounded-lg hover:bg-green-500">Snap &
+                    Save</button>
             </div>
             <div id="profileFaceMsg" class="mt-4 text-sm font-bold hidden"></div>
         </div>
@@ -1663,7 +1670,7 @@
             try {
                 const response = await fetch('/api/user-info');
                 const dashboardNavBtn = document.getElementById('dashboardNavBtn');
-                
+
                 if (response.ok) {
                     const user = await response.json();
                     // User is logged in
@@ -1672,14 +1679,14 @@
                     document.getElementById('profileNavBtn').style.display = 'block';
                     document.getElementById('userName').textContent = user.name;
                     document.getElementById('userType').textContent = user.user_type.charAt(0).toUpperCase() + user.user_type.slice(1);
-                    
+
                     // Populate Profile View
                     document.getElementById('profName').innerText = user.name;
                     document.getElementById('profEmail').innerText = user.email;
                     document.getElementById('profType').innerText = user.user_type;
                     document.getElementById('profPhone').innerText = user.phone || 'N/A';
                     document.getElementById('profLocation').innerText = user.location || 'N/A';
-                    
+
                     const statusText = document.getElementById('profFaceStatus');
                     if (user.has_face) {
                         statusText.innerText = '✅ Active - Ready for Face Login';
@@ -1747,7 +1754,7 @@
             const msg = document.getElementById('profileFaceMsg');
             msg.classList.add('hidden');
             msg.innerHTML = '';
-            
+
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 try {
                     profileStream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -1771,13 +1778,13 @@
             const video = document.getElementById('profileWebcamVideo');
             const canvas = document.getElementById('profileFaceCanvas');
             const msg = document.getElementById('profileFaceMsg');
-            
+
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-            
+
             msg.classList.remove('hidden');
             msg.className = 'mt-4 text-sm font-bold text-blue-600';
             msg.textContent = 'Saving facial id...';
@@ -1789,7 +1796,7 @@
                     body: JSON.stringify({ facial_data: dataUrl })
                 });
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     msg.className = 'mt-4 text-sm font-bold text-green-600';
                     msg.textContent = '✅ ' + data.message;
@@ -1875,6 +1882,27 @@
             }
         });
     </script>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-200 py-8 mt-12 w-full">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center text-center md:text-left shadow-sm">
+                <div class="mb-6 md:mb-0">
+                    <h3 class="text-2xl font-bold text-white mb-2">🌾 Agri-Direct</h3>
+                    <p class="text-sm text-gray-400">Empowering farmers and buyers through accessible technology.</p>
+                </div>
+                <div class="flex flex-col md:flex-row gap-4 md:gap-6 items-center">
+                    <a href="#" target="_blank" class="hover:text-emerald-400 font-bold transition">GitHub</a>
+                    <a href="#" target="_blank" class="hover:text-emerald-400 font-bold transition">LinkedIn</a>
+                    <a href="https://wa.me/" target="_blank" class="hover:text-emerald-400 font-bold transition">Contact
+                        Us</a>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-sm text-gray-400 font-medium">
+                &copy; 2026 Agri-Direct Portal. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
 
     <!-- Voice Assistant Floating Button -->
     <div class="fixed bottom-8 right-8 flex flex-col items-end z-[100]">

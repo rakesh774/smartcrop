@@ -4,7 +4,18 @@ A high-contrast, ultra-accessible web application designed for farmers and buyer
 
 ## 🌟 Key Features
 
-###  Ultra-Accessible UI
+### 🔐 Passwordless Authentication
+- **Facial Login Integration**: Secure, webcam-based biometric capture during registration and login.
+- No need to remember complex passwords—just scan your face.
+
+### 🎙️ Voice-Enabled Portal
+- **Voice Assistant**: Integrated voice commands for navigating the marketplace, parsing crop info, and checking stats.
+- Perfect for low-literacy users and hands-free interaction.
+
+### 👤 User Profiles
+- **Profile Dashboard**: Manage account details, update facial credentials, and view personal information.
+
+### ♿ Ultra-Accessible UI
 - **High-contrast colors**: Green (Accept/Add), Red (Reject/Cancel), Yellow (Info), Blue (Navigation)
 - **Large buttons** (80px minimum) with clear icons (🌾, 💰, 👨‍🌾, 🛒)
 - **20px minimum font size** for all text
