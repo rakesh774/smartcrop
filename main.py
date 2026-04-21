@@ -98,6 +98,45 @@ def predict_next_5_months(history):
         
     return predictions
 
+def get_all_marketplace_items():
+    crops = load_crops()
+    farmer_products = load_farmer_products()
+    users = load_users()
+    
+    all_items = {}
+    for k, v in crops.items():
+        all_items[k] = dict(v)
+        all_items[k]['display_name'] = k.replace('_', ' ').capitalize()
+        
+    for farmer_id, products in farmer_products.items():
+        farmer_name = 'Unknown Farmer'
+        for farmer in users.get('farmers', []):
+            if farmer['user_id'] == farmer_id:
+                farmer_name = farmer['name']
+                break
+                
+        for product in products:
+            item_key = f"{product['name'].lower().replace(' ', '_')}_{farmer_id}"
+            all_items[item_key] = {
+                'display_name': product['name'],
+                'info': {
+                    'price': product['price'],
+                    'location': 'Farm',
+                    'trend': 'Up'
+                },
+                'history': [int(product['price'] * 0.8), int(product['price'] * 0.85), int(product['price'] * 0.9), 
+                           int(product['price'] * 0.95), product['price'], product['price'], product['price']],
+                'phone': '',
+                'farmer_name': farmer_name,
+                'description': product.get('description', f"{product['name']} from {farmer_name}"),
+                'farmer_id': farmer_id,
+                'quantity_available': product.get('quantity', 0),
+                'quality': product.get('quality', 'Grade A'),
+                'is_farmer_product': True
+            }
+            
+    return all_items
+
 @app.route('/')
 def index():
     # Check if user is logged in
@@ -304,44 +343,7 @@ def get_crops():
 @app.route('/api/marketplace-crops')
 def get_marketplace_crops():
     """Get all crops from crop_data.json + farmer_products.json for marketplace display"""
-    crops = load_crops()
-    
-    # Also include farmer products
-    farmer_products = load_farmer_products()
-    users = load_users()
-    
-    # Create a dict to store all items
-    all_items = dict(crops)
-    
-    # Add farmer products
-    for farmer_id, products in farmer_products.items():
-        # Find farmer name
-        farmer_name = 'Unknown Farmer'
-        for farmer in users.get('farmers', []):
-            if farmer['user_id'] == farmer_id:
-                farmer_name = farmer['name']
-                break
-        
-        # Add each farmer product to marketplace
-        for product in products:
-            item_key = f"{product['name'].lower().replace(' ', '_')}_{farmer_id}"
-            all_items[item_key] = {
-                'info': {
-                    'price': product['price'],
-                    'location': 'Farm',
-                    'trend': 'Up'
-                },
-                'history': [int(product['price'] * 0.8), int(product['price'] * 0.85), int(product['price'] * 0.9), 
-                           int(product['price'] * 0.95), product['price'], product['price'], product['price']],
-                'phone': '',
-                'farmer_name': farmer_name,
-                'description': product.get('description', f"{product['name']} from {farmer_name}"),
-                'farmer_id': farmer_id,
-                'quantity_available': product.get('quantity', 0),
-                'quality': product.get('quality', 'Grade A'),
-                'is_farmer_product': True
-            }
-    
+    all_items = get_all_marketplace_items()
     return jsonify(all_items)
 
 @app.route('/api/analytics')
@@ -405,11 +407,11 @@ def get_analytics():
 
 @app.route('/api/predict/<crop_name>')
 def predict_price(crop_name):
-    crops = load_crops()
-    if crop_name not in crops:
+    all_items = get_all_marketplace_items()
+    if crop_name not in all_items:
         return jsonify({'error': 'Crop not found'}), 404
     
-    history = crops[crop_name]['history']
+    history = all_items[crop_name]['history']
     predictions = predict_next_5_months(history)
     
     # Generate dates for next 5 months
@@ -429,7 +431,7 @@ def predict_price(crop_name):
     
     return jsonify({
         'crop': crop_name,
-        'current_price': crops[crop_name]['info']['price'],
+        'current_price': all_items[crop_name]['info']['price'],
         'dates': dates,
         'predictions': predictions
     })
@@ -442,11 +444,11 @@ def create_order():
     
     data = request.json
     
-    crops = load_crops()
-    if data['crop'] not in crops:
+    all_items = get_all_marketplace_items()
+    if data['crop'] not in all_items:
         return jsonify({'error': 'Crop not found'}), 404
     
-    crop_data = crops[data['crop']]
+    crop_data = all_items[data['crop']]
     total_price = crop_data['info']['price'] * data['quantity']
     
     # Get farmer info from crop data
@@ -500,17 +502,35 @@ def create_order():
 
 @app.route('/api/orders')
 def get_orders():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Please log in'}), 401
+    
+    user_id = session.get('user_id')
+    user_type = session.get('user_type')
+
     orders_file = 'templates/orders.json'
     try:
         with open(orders_file, 'r') as f:
             orders = json.load(f)
     except:
         orders = []
-    return jsonify(orders)
+        
+    filtered_orders = []
+    for order in orders:
+        if user_type == 'farmer' and order.get('farmer_id') == user_id:
+            filtered_orders.append(order)
+        elif user_type == 'buyer' and order.get('buyer_id') == user_id:
+            filtered_orders.append(order)
+        elif user_type == 'admin':
+            filtered_orders.append(order)
+            
+    return jsonify(filtered_orders)
 
 @app.route('/api/orders/farmer/<farmer_id>')
 def get_farmer_orders(farmer_id):
     """Get all orders placed FOR a specific farmer's crops"""
+    if 'user_id' not in session or (session.get('user_id') != farmer_id and session.get('user_type') != 'admin'):
+        return jsonify({'error': 'Unauthorized'}), 403
     orders_file = 'templates/orders.json'
     try:
         with open(orders_file, 'r') as f:
@@ -525,6 +545,8 @@ def get_farmer_orders(farmer_id):
 @app.route('/api/orders/buyer/<buyer_id>')
 def get_buyer_orders(buyer_id):
     """Get all orders placed BY a specific buyer"""
+    if 'user_id' not in session or (session.get('user_id') != buyer_id and session.get('user_type') != 'admin'):
+        return jsonify({'error': 'Unauthorized'}), 403
     orders_file = 'templates/orders.json'
     try:
         with open(orders_file, 'r') as f:
@@ -573,13 +595,32 @@ def update_order_status(order_id):
 # Farmer Product Management
 @app.route('/api/farmer/products/<farmer_id>', methods=['GET'])
 def get_farmer_products(farmer_id):
+    if 'user_id' not in session or (session.get('user_id') != farmer_id and session.get('user_type') != 'admin'):
+        return jsonify({'error': 'Unauthorized'}), 403
     products = load_farmer_products()
     farmer_products = products.get(farmer_id, [])
     return jsonify(farmer_products)
 
 @app.route('/api/farmer/products/<farmer_id>', methods=['POST'])
 def add_farmer_product(farmer_id):
+    if 'user_id' not in session or (session.get('user_id') != farmer_id and session.get('user_type') != 'admin'):
+        return jsonify({'error': 'Unauthorized'}), 403
+        
     data = request.json
+    
+    users = load_users()
+    authorized = False
+    for farmer in users.get('farmers', []):
+        if farmer['user_id'] == farmer_id:
+            crops_grown = [c.lower() for c in farmer.get('crops_grown', [])]
+            product_name = data.get('name', '').lower()
+            if any(crop in product_name for crop in crops_grown) or session.get('user_type') == 'admin':
+                authorized = True
+            break
+            
+    if not authorized:
+        return jsonify({'error': 'You are not authorized to add products for crops you do not grow.'}), 403
+        
     products = load_farmer_products()
     
     if farmer_id not in products:
@@ -605,7 +646,25 @@ def add_farmer_product(farmer_id):
 
 @app.route('/api/farmer/products/<farmer_id>/<product_id>', methods=['PUT'])
 def update_farmer_product(farmer_id, product_id):
+    if 'user_id' not in session or (session.get('user_id') != farmer_id and session.get('user_type') != 'admin'):
+        return jsonify({'error': 'Unauthorized'}), 403
+        
     data = request.json
+    
+    if 'name' in data:
+        users = load_users()
+        authorized = False
+        for farmer in users.get('farmers', []):
+            if farmer['user_id'] == farmer_id:
+                crops_grown = [c.lower() for c in farmer.get('crops_grown', [])]
+                product_name = data.get('name', '').lower()
+                if any(crop in product_name for crop in crops_grown) or session.get('user_type') == 'admin':
+                    authorized = True
+                break
+                
+        if not authorized:
+            return jsonify({'error': 'You are not authorized to update to a crop you do not grow.'}), 403
+            
     products = load_farmer_products()
     
     if farmer_id in products:
@@ -629,6 +688,9 @@ def update_farmer_product(farmer_id, product_id):
 
 @app.route('/api/farmer/products/<farmer_id>/<product_id>', methods=['DELETE'])
 def delete_farmer_product(farmer_id, product_id):
+    if 'user_id' not in session or (session.get('user_id') != farmer_id and session.get('user_type') != 'admin'):
+        return jsonify({'error': 'Unauthorized'}), 403
+        
     products = load_farmer_products()
     
     if farmer_id in products:

@@ -55,5 +55,24 @@
     "status": "Active",
     "payment_method": "auto-debit",
     "auto_renew": true
+  },
+  {
+    "subscription_id": "SUB-20260417145520",
+    "buyer_name": "surya",
+    "buyer_phone": "9392193921",
+    "buyer_email": "surya@gmail.com",
+    "farmer_id": "farmer_002",
+    "product_name": "Basmati Rice",
+    "quantity": 3.0,
+    "unit": "kg",
+    "price_per_unit": 120.0,
+    "frequency": "biweekly",
+    "start_date": "2026-04-17T14:55:20.423019",
+    "next_delivery": "2026-05-01T14:55:20.423025",
+    "total_cost": 360.0,
+    "deliveries_completed": 0,
+    "status": "Active",
+    "payment_method": "auto-debit",
+    "auto_renew": true
   }
 ]
